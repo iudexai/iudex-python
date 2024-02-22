@@ -72,16 +72,16 @@ class IudexCompletions:
         if function_call_id:
             res = self._client.request(
                 "PUT",
-                f"/function_call/{function_call_id}/return",
+                f"/function_calls/{function_call_id}/return",
                 {"functionReturn": last_msg_content},
             )
-
         # no function_call_id provided, so we create a new workflow
-        res = self._client.request(
-            "POST",
-            "/workflows",
-            {"query": last_msg_content},
-        )
+        else:
+            res = self._client.request(
+                "POST",
+                "/workflows",
+                {"query": last_msg_content},
+            )
 
         workflow_id = res.get("workflowId")
         if not workflow_id:
@@ -165,17 +165,7 @@ class Iudex:
         data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
     ):
-        with httpx.Client() as client:
-            headers = {"x-api-key": self.api_key}
-            response = client.request(
-                method=method,
-                url=self.base_url + path,
-                json=data,
-                params=params,
-                headers=headers,
-            )
-            response.raise_for_status()
-            return response.json()
+        return self._request(method, path, data, params).json()
 
     def poll(
         self,
@@ -186,25 +176,34 @@ class Iudex:
         max_tries: int = 300,
         wait_seconds: int = 1,
     ) -> Dict[str, Any]:
-        """Polls the endpoint until it returns a non-204 response."""
+        """Polls endpoint until it returns non-204 response."""
         tries = 0
         while tries < max_tries:
-            with httpx.Client() as client:
-                headers = {"x-api-key": self.api_key}
-                response = client.request(
-                    method=method,
-                    url=self.base_url + path,
-                    json=data,
-                    params=params,
-                    headers=headers,
-                )
-
-                if response.status_code == 204:
-                    tries += 1
-                    time.sleep(wait_seconds)
-                    continue
-
-                response.raise_for_status()
-                return response.json()
-
+            response = self._request(method, path, data, params)
+            if response.status_code == 204:
+                tries += 1
+                time.sleep(wait_seconds)
+                continue
+            return response.json()
         raise TimeoutError("Max retries reached without a successful response.")
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
+        timeout_seconds: int = 30,
+    ):
+        """Helper to make requests and return raw API response."""
+        with httpx.Client(timeout=timeout_seconds) as client:
+            headers = {"x-api-key": self.api_key}
+            response = client.request(
+                method=method,
+                url=self.base_url + path,
+                json=data,
+                params=params,
+                headers=headers,
+            )
+            response.raise_for_status()
+            return response

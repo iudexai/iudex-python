@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import os
 import time
+from datetime import datetime, timezone
 from typing import (
     Any,
     Dict,
@@ -10,28 +10,28 @@ from typing import (
     Optional,
     Union,
 )
-from typing_extensions import Literal
 
 import httpx
 from openai.types.chat import (
+    ChatCompletion,
     ChatCompletionMessage,
+    ChatCompletionMessageParam,
     ChatCompletionMessageToolCall,
 )
 from openai.types.chat.chat_completion import Choice
-from openai.types.chat.chat_completion_message_tool_call import Function
-
-from openai.types.chat import (
-    ChatCompletion,
-    ChatCompletionMessageParam,
-)
+from openai.types.chat.completion_create_params import Function as FunctionSpec
+from openai.types.chat.chat_completion_message_tool_call import Function as FunctionCall
+from typing_extensions import Literal
 
 
-class IudexCompletions:
+class ApiResource:
     _client: Iudex
 
     def __init__(self, client: Iudex) -> None:
         self._client = client
 
+
+class IudexCompletions(ApiResource):
     def create(
         self,
         *,
@@ -93,7 +93,9 @@ class IudexCompletions:
         )
 
         # TODO: pydantic validation
-        dt = datetime.fromisoformat(m["timestamp"].rstrip("Z")).replace(tzinfo=timezone.utc)
+        dt = datetime.fromisoformat(m["timestamp"].rstrip("Z")).replace(
+            tzinfo=timezone.utc
+        )
         timestamp = int(dt.timestamp())
         if m["type"] == "functionCall":
             message = ChatCompletionMessage(
@@ -101,7 +103,7 @@ class IudexCompletions:
                 tool_calls=[
                     ChatCompletionMessageToolCall(
                         id=m["functionCallId"],
-                        function=Function(
+                        function=FunctionCall(
                             arguments=str(m["functionArgs"]), name=m["functionName"]
                         ),
                         type="function",
@@ -132,31 +134,43 @@ class IudexCompletions:
         raise ValueError(f"Unsupported message type: {m['type']}")
 
 
-class IudexChat:
-    _client: Iudex
-
-    def __init__(self, client: Iudex) -> None:
-        self._client = client
-
+class IudexChat(ApiResource):
     @property
     def completions(self) -> IudexCompletions:
         return IudexCompletions(self._client)
+
+
+class IudexFunctions(ApiResource):
+    def upsert(
+        self,
+        *,
+        functions: Iterable[FunctionSpec],
+        module: Optional[str] = None,
+    ):
+        req: Dict[str, Any] = {"jsons": functions}
+        if module:
+            req["module"] = module
+        return self._client.request("PUT", "/function_jsons", req)
 
 
 class Iudex:
     base_url = "https://api.iudex.ai"
     api_key: str
     chat: IudexChat
+    functions: IudexFunctions
 
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         api_key = api_key or os.getenv("IUDEX_API_KEY")
         if not api_key:
             raise ValueError(
-                'Must supply an API key by setting env var IUDEX_API_KEY or as arg (`Iudex(api_key="YOUR_API_KEY")`)'
+                'Must supply an API key by setting env var `IUDEX_API_KEY` or as arg (`Iudex(api_key="YOUR_API_KEY")`)'
             )
         self.api_key = api_key
+
         self.base_url = base_url or os.getenv("IUDEX_BASE_URL") or self.base_url
+
         self.chat = IudexChat(self)
+        self.functions = IudexFunctions(self)
 
     def request(
         self,

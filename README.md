@@ -1,15 +1,24 @@
 # Iudex Python Client SDK
 
-The official Python client for the [Iudex](https://iudex.ai) API.
+**Easily build 🛠️ natural language interfaces for ✨ your own ✨ applications 💻**
 
-Iudex is an infrastructure that enables complex and accurate function calling APIs.
-It provides a natural language interface that can accomplish complex or answer complex queries given the control of your own functions.
+[Iudex](https://iudex.ai) is an API layer that allows you to quickly build applications that can use LLM reasoning in a way that is more
+accurate, secure, and scalable than the toy examples from other projects. Iudex does this by providing an out-of-the-box
+LLM orchestration architecture capable of working with millions of functions and documents.
+
+**❗ Leverage the power 🦾 of LLMs 🤖 with Iudex ❗**
 
 ## Installation
 
 ```bash
 pip install iudex
 ```
+
+## How It Works
+
+Iudex works by first indexing your functions. Afterwards, when making a query, Iudex will figure out the best way to accomplish that query
+by intelligently sequencing the functions you have connected and with the prebuilt functions we have created. This way, Iudex ensures
+that the functions that get called do not suffer from hallucinations and can properly use the results from previously run functions.
 
 ## Usage Example
 

@@ -22,7 +22,9 @@ that the functions that get called do not suffer from hallucinations and can pro
 
 ## Usage Example
 
-Before running the examples below, make sure to set the `IUDEX_API_KEY` environment variable or pass your API key directly to the `Iudex` constructor.
+See more examples in the `examples` directory.
+
+Before running examples, make sure to set the `IUDEX_API_KEY` environment variable or pass your API key directly to the `Iudex` constructor.
 
 Visit [iudex.ai](https://iudex.ai) to sign up and receive an API key.
 
@@ -33,68 +35,75 @@ from openai.types.chat.completion_create_params import Function
 client = Iudex(
     api_key='YOUR_API_KEY', # alternatively, set the `IUDEX_API_KEY` environment variable
 )
+get_current_weather_spec = Function(
+    name='get_current_weather',
+    description='Gets the current weather',
+    parameters={
+        'type': 'object',
+        'properties': {
+            'location': {
+                'type': 'string',
+                'description': 'The city and state, e.g., San Francisco, CA',
+            },
+            'unit': {
+                'type': 'string',
+                'enum': ['celsius', 'fahrenheit'],
+                'description': 'The temperature unit',
+            },
+        },
+        'required': ['location'],
+    },
+)
+def get_current_weather(fn_name, fn_args):
+    return "It's always sunny"
+
+NAME_TO_FUNCTION = {
+    'get_current_weather': get_current_weather,
+}
 
 def upload_functions():
-    functions = [
-        Function(
-            name='get_current_weather',
-            description='Gets the current weather',
-            parameters={
-                'type': 'object',
-                'properties': {
-                    'location': {
-                        'type': 'string',
-                        'description': 'The city and state, e.g., San Francisco, CA',
-                    },
-                    'unit': {
-                        'type': 'string',
-                        'enum': ['celsius', 'fahrenheit'],
-                        'description': 'The temperature unit',
-                    },
-                },
-                'required': ['location'],
-            },
-        ),
-    ]
-
+    functions = [get_current_weather_spec]
     res = client.functions.upsert(functions=functions, module='weather_module')
     print('Successfully uploaded functions!')
 
-def check_weather():
+def run_weather_chatbot():
     messages = [{'role': 'user', 'content': 'What is the weather in Philadelphia, PA?'}]
 
     while True:
-        print(messages[-1], '\n\n')
+        print(messages[-1], "\n\n")
 
-        res = client.chat.completions.create(
+        res = iudex.chat.completions.create(
             messages=messages,
-            model='gpt-3.5-turbo',
+            model="gpt-4-turbo-preview",
         )
 
         msg = res.choices[0].message
         messages.append(msg)
 
-        tool_calls = msg.get('tool_calls', [])
+        tool_calls = msg.tool_calls
         if not tool_calls:
             break
 
         for tool_call in tool_calls:
-            fn_call_id = tool_call['id']
-            fn_name = tool_call['function']['name']
-            fn_args = tool_call['function']['arguments']
+            fn_name = tool_call.function.name
+            if fn_name not in NAME_TO_FUNCTION:
+                raise ValueError(f"Unsupported function name: {fn_name}")
+            fn = NAME_TO_FUNCTION[fn_name]
 
-            fn_return = get_current_weather(fn_name, fn_args)
+            fn_args = tool_call.function.arguments.replace("'", '"').replace("None", '"null"')
+            fn_return = fn(**json.loads(fn_args))
 
             messages.append(
-                {'role': 'tool', 'content': fn_return, 'tool_call_id': fn_call_id}
+                {
+                    "role": "tool",
+                    "content": json.dumps(fn_return),
+                    "tool_call_id": tool_call.id,
+                }
             )
-
-def get_current_weather(fn_name, fn_args):
-    return "It's always sunny"
 
 if __name__ == '__main__':
     upload_functions()
-    check_weather()
+    run_weather_chatbot()
 ```
 
 ## Developer / Contributing

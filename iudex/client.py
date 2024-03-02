@@ -153,8 +153,10 @@ class IudexFunctions(ApiResource):
         return self._client.request("PUT", "/function_jsons", req)
 
 
+default_base_url = "https://api.iudex.ai"
+
 class Iudex:
-    base_url = "https://api.iudex.ai"
+    base_url = os.getenv("IUDEX_BASE_URL") or default_base_url
     api_key: str
     chat: IudexChat
     functions: IudexFunctions
@@ -207,7 +209,7 @@ class Iudex:
         path: str,
         data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
-        timeout_seconds: int = 30,
+        timeout_seconds: int = 120,
     ):
         """Helper to make requests and return raw API response."""
         with httpx.Client(timeout=timeout_seconds) as client:

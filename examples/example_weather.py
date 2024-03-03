@@ -167,7 +167,6 @@ NAME_TO_FUNCTION = {
 
 ##### Example usage #####
 if __name__ == "__main__":
-    # Load client - remember to set the IUDEX_API_KEY env var or pass in here
     iudex = Iudex()
 
     # Upload functions
@@ -177,37 +176,19 @@ if __name__ == "__main__":
         get_location_coordinate_function_json,
     ])
 
-    # Send message and handle function calls
-    messages = [{"role": "user", "content": "What's the weather in San Francisco?"}]
+    # Link functions
+    def function_linker(name: str):
+        if name == "getLocationMetadata":
+            return get_location_metadata
+        if name == "getGridpointForecast":
+            return get_gridpoint_forecast
+        if name == "getLocationCoordinate":
+            return get_location_coordinate
+    iudex.link_functions(function_linker)
 
-    while True:
-        print(messages[-1], "\n\n")
+    # Send message (handles function calls)
+    req_msg = "What's the weather in San Francisco?"
+    print(f"Sending message: {req_msg}\n")
+    msg = iudex.send_message(req_msg)
 
-        res = iudex.chat.completions.create(
-            messages=messages,
-            model="gpt-4-turbo-preview",
-        )
-
-        msg = res.choices[0].message
-        messages.append(msg)
-
-        tool_calls = msg.tool_calls
-        if not tool_calls:
-            break
-
-        for tool_call in tool_calls:
-            fn_name = tool_call.function.name
-            if fn_name not in NAME_TO_FUNCTION:
-                raise ValueError(f"Unsupported function name: {fn_name}")
-            fn = NAME_TO_FUNCTION[fn_name]
-
-            fn_args = tool_call.function.arguments.replace("'", '"').replace("None", '"null"')
-            fn_return = fn(**json.loads(fn_args))
-
-            messages.append(
-                {
-                    "role": "tool",
-                    "content": json.dumps(fn_return),
-                    "tool_call_id": tool_call.id,
-                }
-            )
+    print(f"Final message: {msg}\n")

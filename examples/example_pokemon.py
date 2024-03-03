@@ -6,12 +6,12 @@ import httpx
 from iudex import Iudex
 
 get_pokemon_function_json = {
-    "name": "getPokemon",
+    "name": "get_pokemon",
     "description": "Get Pokémon data by id or name.",
     "parameters": {
         "type": "object",
         "properties": {
-            "idOrName": {
+            "id_or_name": {
                 "type": "string",
                 "description": "The id or fully lowercase name of the Pokémon to get.",
             },
@@ -110,48 +110,19 @@ def get_pokemon(id_or_name: str):
     return ret
 
 
-NAME_TO_FUNCTION = {"getPokemon": get_pokemon}
-
-
 ##### Example usage #####
 if __name__ == "__main__":
-    # Load client - remember to set the IUDEX_API_KEY env var or pass in here
     iudex = Iudex()
 
     # Upload functions
     iudex.functions.upsert(functions=[get_pokemon_function_json])
 
-    # Send message and handle function calls
-    messages = [{"role": "user", "content": "What is pikachu's height and weight?"}]
+    # Link functions
+    iudex.link_functions({"get_pokemon": get_pokemon})
 
-    while True:
-        print(messages[-1], "\n\n")
+    # Send message (handles function calls)
+    req_msg = "What is pikachu's height and weight?"
+    print("Sending message:", req_msg)
+    msg = iudex.send_message(req_msg)
 
-        res = iudex.chat.completions.create(
-            messages=messages,
-            model="gpt-4-turbo-preview",
-        )
-
-        msg = res.choices[0].message
-        messages.append(msg)
-
-        tool_calls = msg.tool_calls
-        if not tool_calls:
-            break
-
-        for tool_call in tool_calls:
-            fn_name = tool_call.function.name
-            if fn_name not in NAME_TO_FUNCTION:
-                raise ValueError(f"Unsupported function name: {fn_name}")
-            fn = NAME_TO_FUNCTION[fn_name]
-
-            fn_args = tool_call.function.arguments.replace("'", '"').replace("None", '"null"')
-            fn_return = fn(**json.loads(fn_args))
-
-            messages.append(
-                {
-                    "role": "tool",
-                    "content": json.dumps(fn_return),
-                    "tool_call_id": tool_call.id,
-                }
-            )
+    print("Final message:", msg)

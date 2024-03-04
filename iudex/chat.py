@@ -44,7 +44,8 @@ class IudexCompletions(ApiResource):
         ],
         **kwargs,
     ) -> ChatCompletion:
-        messages = list(messages)
+        # TODO: proper pydantic and TypedDict parsing
+        messages: list[dict[str, str]] = [dict(**m) for m in messages]
         if not messages:
             raise ValueError("Must supply at least one message")
 

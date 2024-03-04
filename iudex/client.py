@@ -9,7 +9,7 @@ import httpx
 
 from .chat import IudexChat
 from .functions import IudexFunctions
-from .utils import clean_json
+from .utils import as_dict
 
 
 default_base_url = "https://api.iudex.ai"
@@ -105,8 +105,9 @@ class Iudex:
                 fn_name = tool_call.function.name
                 fn = self.get_function(fn_name)
 
-                fn_args = clean_json(tool_call.function.arguments)
-                fn_return = fn(**json.loads(fn_args))
+                fn_args = as_dict(tool_call.function.arguments)
+                # TODO: validate arg schema against fn spec with pydantic
+                fn_return = fn(**fn_args)
 
                 messages.append(
                     {

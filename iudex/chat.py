@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Iterable, Union
+from typing import Any, Iterable, Union
 
 from openai.types.chat import (
     ChatCompletion,
@@ -45,7 +45,7 @@ class IudexCompletions(ApiResource):
         **kwargs,
     ) -> ChatCompletion:
         # TODO: proper pydantic and TypedDict parsing
-        messages: list[dict[str, str]] = [dict(**m) for m in messages]
+        messages: list[dict[str, Any]] = [dict(m) for m in messages]
         if not messages:
             raise ValueError("Must supply at least one message")
 

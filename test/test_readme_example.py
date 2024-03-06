@@ -20,6 +20,19 @@ get_current_weather_spec = {
         },
         "required": ["location"],
     },
+    "returns": {
+        "type": "object",
+        "properties": {
+            "temp": {
+                "type": "number",
+                "description": "The temperature value",
+            },
+            "unit": {
+                "type": "string",
+                "description": "The temperature unit",
+            },
+        },
+    },
 }
 
 
@@ -31,12 +44,6 @@ def get_current_weather(location: str, unit="fahrenheit"):
     return {
         "temp": temp,
         "unit": unit,
-        "humidity": 0.5,
-        "wind_speed": 1,
-        "wind_unit": "mph",
-        "wind_direction": "NE",
-        "precipitation": 0.1,
-        "description": "partially sunny",
     }
 
 
@@ -46,9 +53,11 @@ def upload_and_link_functions():
     client.functions.upsert(functions=functions, module="weather_module")
 
     print("Linking functions...\n")
+
     def function_linker(name: str):
         if name == "get_current_weather":
             return get_current_weather
+
     client.link_functions(function_linker)
 
 

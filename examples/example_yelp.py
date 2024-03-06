@@ -1,11 +1,9 @@
-import json
 import os
 
 import httpx
 
 from iudex import Iudex
 
-# Define the searchYelp function JSON
 search_yelp_function_json = {
     "name": "searchYelp",
     "description": "Search Yelp for businesses.",

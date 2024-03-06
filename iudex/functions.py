@@ -1,6 +1,8 @@
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, List, Optional, Union
 
-from openai.types.chat.completion_create_params import Function as FunctionSpec
+from pydantic import ValidationError
+
+from iudex.types.function import FunctionJson
 
 from .resource import ApiResource
 
@@ -9,10 +11,20 @@ class IudexFunctions(ApiResource):
     def upsert(
         self,
         *,
-        functions: Iterable[FunctionSpec],
+        functions: Iterable[Union[FunctionJson, Dict[str, Any]]],
         module: Optional[str] = None,
     ):
-        req: Dict[str, Any] = {"jsons": functions}
+        jsons: List[FunctionJson] = []
+        for fn in functions:
+            try:
+                if not isinstance(fn, FunctionJson):
+                    fn = FunctionJson(**fn)
+                jsons.append(fn)
+            except ValidationError as e:
+                raise ValueError(f"Invalid function JSON structure: {e}")
+
+        req: dict[str, object] = {"jsons": [fn.dict() for fn in jsons]}
         if module:
             req["module"] = module
+
         return self._client._request("PUT", "/function_jsons", req)

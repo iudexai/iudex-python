@@ -1,6 +1,4 @@
 # https://pokeapi.co/docs/v2#pokemon-section
-import json
-
 import httpx
 
 from iudex import Iudex

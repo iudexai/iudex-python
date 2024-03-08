@@ -21,7 +21,13 @@ class Iudex:
     chat: IudexChat
     functions: IudexFunctions
 
-    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        polling_max_tries: int = 300,
+        polling_wait_seconds: int = 1,
+    ):
         api_key = api_key or os.getenv("IUDEX_API_KEY")
         if not api_key:
             raise ValueError(
@@ -30,6 +36,9 @@ class Iudex:
         self.api_key = api_key
 
         self.base_url = base_url or os.getenv("IUDEX_BASE_URL") or self.base_url
+
+        self.max_tries = polling_max_tries
+        self.wait_seconds = polling_wait_seconds
 
         self.chat = IudexChat(self)
         self.functions = IudexFunctions(self)
@@ -132,16 +141,14 @@ class Iudex:
         path: str,
         data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, Any]] = None,
-        max_tries: int = 300,
-        wait_seconds: int = 1,
     ) -> Dict[str, Any]:
         """Polls endpoint until it returns non-204 response."""
         tries = 0
-        while tries < max_tries:
+        while tries < self.max_tries:
             response = self._request_helper(method, path, data, params)
             if response.status_code == 204:
                 tries += 1
-                time.sleep(wait_seconds)
+                time.sleep(self.wait_seconds)
                 continue
             return response.json()
         raise TimeoutError("Max retries reached without a successful response.")

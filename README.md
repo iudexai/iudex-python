@@ -235,11 +235,11 @@ Compatibility with the OpenAI Assistants API is coming soon.
 
 While Iudex is currently in its nascent stages, we welcome contributions from the developer community.
 
-We use Poetry for dependency management and packaging.
+We use [Poetry](https://python-poetry.org) for dependency management and packaging.
 
 To get started:
 
-1. Fork the repository and clone it locally.
-2. Install Poetry on your system if you haven't already.
-3. Run `poetry install` to install dependencies and the project as editable using `pip install --editable .`.
-4. Run scripts or tests with `poetry run` or `poetry run pytest -s`. Alternatively start a nested shell with `poetry shell`.
+1. [Fork the repository](https://github.com/iudexai/iudex-python/fork) and clone it locally.
+2. [Install Poetry](https://python-poetry.org/docs/#installation) on your system if you haven't already.
+3. Run `poetry install` to install dependencies and the project as editable.
+4. Run scripts or tests with `poetry run` or `poetry run pytest -s`. Alternatively start a nested shell and load the venv with `poetry shell`.

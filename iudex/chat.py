@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, Optional, Union
 
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionMessage,
     ChatCompletionMessageParam,
     ChatCompletionMessageToolCall,
+    ChatCompletionToolParam,
+    completion_create_params,
 )
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_message_tool_call import Function as FunctionCall
@@ -19,7 +21,6 @@ class IudexCompletions(ApiResource):
         self,
         *,
         messages: Iterable[ChatCompletionMessageParam],
-        # TODO: warn following args are not currently used
         model: Union[
             str,
             Literal[
@@ -42,8 +43,66 @@ class IudexCompletions(ApiResource):
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
+        functions: Optional[Iterable[completion_create_params.Function]] = None,
+        tools: Optional[Iterable[ChatCompletionToolParam]] = None,
         **kwargs,
     ) -> ChatCompletion:
+        """Receives either a text or function call message from Iudex.
+
+        If functions or tools are provided, the Iudex API will be called,
+        receiving either a text or function call message.
+
+        When a function call message is received, the requested function should be run
+        and its result should be appended as a new message, following the OpenAI schema:
+        ```
+        {
+            'tool_call_id': 'call_123456',
+            'role': 'tool',
+            'content': '{ "key": "value" }',
+        }
+        ```
+        Finally, the `create` method should be called again with the new message.
+
+        Receiving a non-function call (text) message indicates that the user query was resolved
+        through function calling. The text content contains the final answer/response to the query.
+
+        This method is compatible with `OpenAI.chat.completions.create`.
+        If no functions or tools are provided, this method will directly call the OpenAI chat API.
+        This requires an `OPENAI_API_KEY` environment variable to be set.
+
+        Args:
+            messages: A list of messages to send to Iudex.
+                Currently, only the last message is used as the query.
+                Support for context-sensitive function call planning is coming soon.
+            model: The model to use for completion.
+                This parameter is used for compatibility with the OpenAI API.
+                For non-function calling chats, the model is passed along to the OpenAI API.
+                Otherwise, it is unused; model switching support in Iudex is coming soon.
+            functions: A list of function JSONs.
+                This parameter is used for compatibility with the OpenAI API.
+                If provided, the Iudex API is called to resolve the query with function calls.
+                If neither functions nor tools are provided, the OpenAI API is called directly.
+                The functions JSONs provided here are unused; instead Iudex uses functions JSONs
+                uploaded via `iudex.Iudex.upsert_functions`.
+            tools: A list of tool JSONs.
+                This parameter is used for compatibility with the OpenAI API.
+                If provided, the Iudex API is called to resolve the query with function calls.
+                If neither functions nor tools are provided, the OpenAI API is called directly.
+                The tool JSONs provided here are unused; instead Iudex uses functions JSONs uploaded
+                via `iudex.Iudex.upsert_functions`.
+            kwargs: Additional parameters to pass to the OpenAI API.
+
+        Returns:
+            ChatCompletion: The Open AI chat completion object.
+                The Iudex client is compatible with OpenAI types and schemas; this returned object
+                should be handled as normal.
+        """
+        # direct pass through to OpenAI API if not function calling
+        if not functions and not tools:
+            return self._client._openai_client.chat.completions.create(
+                messages=messages, model=model, **kwargs
+            )
+
         # TODO: proper pydantic and TypedDict parsing
         messages: list[dict[str, Any]] = [dict(m) for m in messages]
         if not messages:

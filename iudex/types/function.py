@@ -6,8 +6,6 @@ from typing import (
     List,
     Literal,
     Optional,
-    Required,
-    TypedDict,
     Union,
 )
 
@@ -107,6 +105,7 @@ for schema in [
 
 
 class FunctionJson(BaseModel):
+    """JSON schema to describe functions and their parameters and return schemas."""
     name: str
     description: Optional[str]
     parameters: Union[ObjectJsonSchema, ArrayJsonSchema]

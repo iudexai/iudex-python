@@ -6,6 +6,7 @@ import time
 from typing import Any, Callable, Dict, Optional, Union
 
 import httpx
+from openai import OpenAI
 
 from .chat import IudexChat
 from .functions import IudexFunctions
@@ -89,6 +90,27 @@ class Iudex:
         message: str,
         model: str = "gpt-4-turbo-preview",
     ) -> str:
+        """Sends text to the Iudex API and returns a text response.
+
+        Iudex will resolve the query message by planning out a sequence of
+        function calls and invoking them in the client's runtime environment.
+        Once resolved, a final text response is returned.
+
+        Query workflow progress can be monitored at: https://app.iudex.ai
+
+        You must first run `Iudex.functions.upsert` and `Iudex.link_functions`.
+        This will inform Iudex of functions available to call and link them 
+        to their implementations.
+
+        Args:
+            message: The str message to send to Iudex.
+                This is typically a natural language query.
+                It is encouraged to provide any necessary context in the same string.
+            model: Currently unused; model switching support in Iudex is coming soon.
+
+        Returns:
+            str: The final text response from Iudex resolving the query.
+        """
         messages = [{"role": "user", "content": message}]
 
         # loop until no more tool calls
@@ -173,3 +195,13 @@ class Iudex:
             )
             response.raise_for_status()
             return response
+
+    @property
+    def _openai_client(self) -> OpenAI:
+        """Deferred OpenAI client instantiation.
+
+        Requires `OPENAI_API_KEY` to be set in the environment.
+        """
+        if not hasattr(self, "_openai_client"):
+            self._cached_openai_client = OpenAI()
+        return self._cached_openai_client

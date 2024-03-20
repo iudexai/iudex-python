@@ -119,6 +119,7 @@ class Iudex:
             res = self.chat.completions.create(
                 messages=messages,
                 model=model,
+                functions=True,  # HACK: force function calling, we should instead factor out a helper consumed by this method and chat completion
             )
             next_msg = res.choices[0].message
             messages.append(next_msg)
@@ -202,6 +203,6 @@ class Iudex:
 
         Requires `OPENAI_API_KEY` to be set in the environment.
         """
-        if not hasattr(self, "_openai_client"):
+        if not hasattr(self, "_cached_openai_client"):
             self._cached_openai_client = OpenAI()
         return self._cached_openai_client

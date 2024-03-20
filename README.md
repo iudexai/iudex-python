@@ -18,10 +18,9 @@ pip install iudex
 
 ## How Iudex Works
 
-![Untitled-2023-06-01-2152](https://github.com/iudexai/iudex-python/assets/2763712/bdb490b1-4912-4edd-ac54-fd564c8497d9)
+![Iudex flow diagram](https://gist.github.com/assets/2763712/be399690-bc8b-4f52-9e1f-228a3d2d6c4e)
 
 ## Quickstart
-
 <details>
 <summary>Code Snippet</summary>
 Before running, make sure to set the `IUDEX_API_KEY` environment variable or pass your API key directly to the `Iudex` constructor.

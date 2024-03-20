@@ -18,7 +18,7 @@ pip install iudex
 
 ## How Iudex Works
 
-![Iudex flow diagram](https://gist.github.com/assets/2763712/be399690-bc8b-4f52-9e1f-228a3d2d6c4e)
+![Untitled-2023-06-01-2152](https://github.com/iudexai/iudex-python/assets/2763712/c8962dca-f8bb-4e5c-8552-2de4d2e7260f)
 
 ## Quickstart
 <details>

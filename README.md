@@ -1,17 +1,24 @@
 # Iudex Python Client
 
-**✨ Next gen LLM function calling ✨**
+**✨ Build 🛠 With Next Gen LLM Function Calling ✨**
 
-[Iudex](https://iudex.ai) is an API for more accurate, secure, and scalable LLM function calling.
-- Infinite functions per query, not 3-5
-- Accuracy and interpretability through mutli-agent orchestration
-- Iudex never has to see or run your code
+[Iudex](https://iudex.ai) is an agent accessible via API that provides more accurate, secure, and scalable LLM function calling.
+- Scales to support 1000s of functions per query, not 10s
+- Supports arbitrarily complex queries and automatically handles edgecases
+- Ensures accuracy and interpretability using automated task orchestration
+- Iudex never has to ingest your code or data
+
+Sign Up at [iudex.ai](https://iudex.ai) or shoot a message at support@iudex.ai to get an API key.
 
 ## Installation
 
 ```bash
 pip install iudex
 ```
+
+## How Iudex Works
+
+![Iudex flow diagram](https://gist.github.com/assets/2763712/be399690-bc8b-4f52-9e1f-228a3d2d6c4e)
 
 ## Quickstart
 <details>

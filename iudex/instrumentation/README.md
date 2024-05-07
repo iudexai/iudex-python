@@ -16,7 +16,7 @@ app = FastAPI()
 
 # Add this
 api_key = os.getenv("IUDEX_API_KEY")
-instrument_app(app=app, api_key=api_key)
+instrument_app(app=app, api_key=api_key, service_name=__main__)
 ```
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`
 4. You should be all set! Go to [https://app.iudex.ai/](https://app.iudex.ai/) and enter your API key

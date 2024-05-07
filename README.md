@@ -250,3 +250,4 @@ To get started:
 2. [Install Poetry](https://python-poetry.org/docs/#installation) on your system if you haven't already.
 3. Run `poetry install` to install dependencies and the project as editable.
 4. Run scripts or tests with `poetry run` or `poetry run pytest -s`. Alternatively start a nested shell and load the venv with `poetry shell`.
+5. Run `python3 -m venv venv` and `source venv/bin/activate` to set up the environment.

@@ -9,11 +9,11 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 
 endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT") or "https://hsyrgkn5ja.execute-api.us-west-2.amazonaws.com/resource_logs"
-api_key = os.getenv("IUDEX_API_KEY")
+env_api_key = os.getenv("IUDEX_API_KEY")
 
 configured = False
 
-def configure(service_name: str | None, instance_id: str | None):
+def configure(service_name: str | None, instance_id: str | None, api_key: str | None = env_api_key):
     global configured
     if (configured):
         return

@@ -4,7 +4,7 @@ To instrument IUDEX you need to prep 2 things, code and environment variables
 
 1. Pip install dependencies
 ```bash
-pip install opentelemetry-distro opentelemetry-instrumentation-fastapi
+pip install opentelemetry-distro opentelemetry-instrumentation-fastapi opentelemetry-exporter-otlp-proto-http
 ```
 2. Create a new file called iudex_instrumentation.py
 3. Add to that file
@@ -23,7 +23,6 @@ endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT") or "https://hsyrgkn5ja.execu
 api_key = os.getenv("IUDEX_API_KEY")
 
 configured = False
-
 def configure(service_name: str | None, instance_id: str | None):
     global configured
     if (configured):

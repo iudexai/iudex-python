@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from .instrumentation import IudexConfig
 
@@ -7,6 +7,7 @@ def instrument(
     service_name: Optional[str] = None,
     instance_id: Optional[str] = None,
     iudex_api_key: Optional[str] = None,
+    log_level: Optional[Union[int, str]] = None,
     config: Optional[IudexConfig] = None,
 ):
     """Auto-instruments app to send OTel signals to Iudex.
@@ -19,6 +20,7 @@ def instrument(
         instance_id: ID of the service instance, e.g. container id, pod name.
         iudex_api_key: Your Iudex API key.
             If not supplied, env var IUDEX_API_KEY will be used.
+        log_level: Logging level for the root logger.
         config: IudexConfig object with more granular options.
             Will override all other args, so provide them to the object instead.
     """
@@ -29,6 +31,8 @@ def instrument(
         kwargs["instance_id"] = instance_id
     if iudex_api_key:
         kwargs["iudex_api_key"] = iudex_api_key
+    if log_level:
+        kwargs["log_level"] = log_level
     config = config or IudexConfig(**kwargs)
 
     config.configure()

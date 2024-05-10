@@ -1,4 +1,4 @@
-To instrument IUDEX you need to prep 2 things, code and environment variables
+Instrumenting your Python service to send logs to Iudex just takes a few steps.
 
 # FastAPI
 
@@ -6,16 +6,19 @@ To instrument IUDEX you need to prep 2 things, code and environment variables
 ```bash
 pip install iudex
 ```
-2. Import `instrument_app` where you defined FastAPI (usually `main.py`) from `iudex`
+2. Import `instrument` where you defined FastAPI (usually `main.py`) from `iudex`
 ```python
 # Add this
-from iudex.instrumentation.fastapi_instrumentation import instrument_app
+from iudex.instrumentation.fastapi import instrument
 
 # Find this in your code base
 app = FastAPI()
 
 # Add this
-instrument_app(app=app, api_key=os.getenv("IUDEX_API_KEY"), service_name=__main__)
+instrument(
+  app=app,
+  service_name=__name__, # or any string describing your service
+)
 ```
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`
 4. You should be all set! Go to [https://app.iudex.ai/](https://app.iudex.ai/) and enter your API key
@@ -28,12 +31,11 @@ instrument_app(app=app, api_key=os.getenv("IUDEX_API_KEY"), service_name=__main_
 ```bash
 pip install iudex
 ```
-2. Import `instrument_app` from `iudex` and invoke it in your entrypoint (usually `main.py`)
+2. Import `instrument` from `iudex` and invoke it in your entrypoint (usually `main.py`)
 ```python
 # Add this in your lambda function file (likely lambda_function.py)
-from iudex.instrumentation.lambda_instrumentation import instrument_app
-instrument_app(
-  api_key=os.getenv("IUDEX_API_KEY"),
+from iudex.instrumentation.lambda import instrument
+instrument(
   service_name=__name__, # or any string describing your service
 )
 ```

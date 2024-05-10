@@ -106,7 +106,7 @@ class IudexConfig:
         set_logger_provider(logger_provider)
         logging.basicConfig(level=self.log_level)
         # add handler to root logger
-        self.configure_logger(log_level=self.log_level)
+        configure_logger(log_level=self.log_level)
 
         # configure tracer
         trace_provider = TracerProvider(resource=resource)
@@ -116,17 +116,22 @@ class IudexConfig:
 
         IUDEX_CONFIGURED = True
 
-    def configure_logger(
-        self,
-        logger_name: Optional[str] = None,
-        log_level: Optional[Union[str, int]] = logging.NOTSET,
-    ):
-        if isinstance(log_level, str):
-            log_level = LOG_LEVEL_ATOI.get(log_level.upper())
-        log_level = log_level or self.log_level or logging.NOTSET
 
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(log_level)
-        logger.addHandler(LoggingHandler(level=log_level))
+def configure_logger(
+    logger_name: Optional[str] = None,
+    log_level: Optional[Union[str, int]] = logging.NOTSET,
+):
+    """Instruments a named logger.
 
-        return logger
+    Useful for non-root loggers with propagate=False.
+    This way, the logger still has the instrumented handler to send logs to Iudex.
+    """
+    if isinstance(log_level, str):
+        log_level = LOG_LEVEL_ATOI.get(log_level.upper())
+    log_level = log_level or logging.NOTSET
+
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(log_level)
+    logger.addHandler(LoggingHandler(level=log_level))
+
+    return logger

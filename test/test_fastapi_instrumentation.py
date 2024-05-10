@@ -5,7 +5,7 @@ from typing import Union
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
-from iudex.instrumentation.fastapi_instrumentation import instrument
+from iudex.instrumentation.fastapi import instrument
 
 load_dotenv()
 

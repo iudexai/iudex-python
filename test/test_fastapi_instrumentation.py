@@ -22,7 +22,16 @@ def post_fork(server, worker):
 
 @app.get("/")
 def read_root():
-    logger.info("Hello World")
+    recursive: dict = {"recursive": "is fine"}
+    recursive["no problem"] = recursive
+    logger.info(
+        "Hello World",
+        extra={
+            "my_attribute_1": "primitives work",
+            "my_attribute_2": {"dicts": "work too"},
+            "my_attribute_3": recursive,
+        },
+    )
     return {"Hello": "World"}
 
 

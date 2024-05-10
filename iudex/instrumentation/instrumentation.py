@@ -19,6 +19,8 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import set_tracer_provider
 
+from .attributes import get_attributes
+
 _logger = logging.getLogger(__name__)
 
 DEFAULT_SERVICE_NAME = "unknown_service:python"
@@ -132,6 +134,8 @@ def configure_logger(
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(log_level)
-    logger.addHandler(LoggingHandler(level=log_level))
+    logger_handler = LoggingHandler(level=log_level)
+    logger_handler._get_attributes = get_attributes
+    logger.addHandler(logger_handler)
 
     return logger

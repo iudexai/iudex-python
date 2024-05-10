@@ -28,11 +28,14 @@ instrument_app(app=app, api_key=os.getenv("IUDEX_API_KEY"), service_name=__main_
 ```bash
 pip install iudex
 ```
-2. Import `instrument_app` where you defined FastAPI (usually `main.py`) from `iudex`
+2. Import `instrument_app` from `iudex` and invoke it in your entrypoint (usually `main.py`)
 ```python
 # Add this in your lambda function file (likely lambda_function.py)
 from iudex.instrumentation.lambda_instrumentation import instrument_app
-instrument_app(api_key=os.getenv("IUDEX_API_KEY"), service_name=__main__)
+instrument_app(
+  api_key=os.getenv("IUDEX_API_KEY"),
+  service_name=__name__, # or any string describing your service
+)
 ```
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`
 4. You should be all set! Go to [https://app.iudex.ai/](https://app.iudex.ai/) and enter your API key

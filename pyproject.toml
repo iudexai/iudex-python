@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iudex"
-version = "0.3.2"
+version = "0.4.0"
 description = ""
 authors = ["Drake Wong <drake@iudex.ai>"]
 readme = "README.md"
@@ -15,8 +15,11 @@ opentelemetry-instrumentation-fastapi = "^0.45b0"
 opentelemetry-exporter-otlp-proto-http = "^1.24.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.2.0"
 python-dotenv = "^1.0.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.2.0"
+fastapi = "^0.111.0"
 
 [build-system]
 requires = ["poetry-core"]

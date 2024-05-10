@@ -40,9 +40,7 @@ def get_attributes(record: LogRecord):
 
     See https://github.com/open-telemetry/opentelemetry-python/blob/c06e6f4b8616618907d70fa023eb2baab7a6ca61/opentelemetry-sdk/src/opentelemetry/sdk/_logs/_internal/__init__.py#L460
     """
-    attributes: Dict = {
-        k: str(v) for k, v in vars(record).items() if k not in _RESERVED_ATTRS
-    }
+    attributes = flatten_attributes(record)
 
     # Add standard code attributes for logs.
     attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
@@ -61,3 +59,29 @@ def get_attributes(record: LogRecord):
                 traceback.format_exception(*record.exc_info)
             )
     return attributes
+
+
+def flatten_attributes(record: LogRecord):
+    """Convert LogRecord to flattened attribute dict.
+
+    For instance {"a": {"b": 1}} will be converted to {"a.b": 1}.
+    """
+    seen = set()
+    attrs = {}
+    def flatten_helper(item, prefix=""):
+        if prefix in _RESERVED_ATTRS:
+            return
+        if not isinstance(item, dict):
+            attrs[prefix] = str(item)
+            return
+        for key, value in item.items():
+            full_key = f"{prefix}.{key}" if prefix else key
+            if id(value) in seen:
+                # circular reference
+                attrs[full_key] = str(value)
+                continue
+            seen.add(id(value))
+            flatten_helper(value, full_key)
+            seen.remove(id(value))
+    flatten_helper(vars(record))
+    return attrs

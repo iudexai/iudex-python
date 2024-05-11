@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional, TypedDict, Union
+import subprocess
 
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
@@ -34,21 +35,26 @@ LOG_LEVEL_ATOI = {
     "CRITICAL": logging.CRITICAL,
     "NOTSET": logging.NOTSET,
 }
+DEFAULT_LOG_LEVEL = logging.INFO
 
 IUDEX_CONFIGURED = False
 
+class IudexConfig(TypedDict):
+    iudex_api_key: Optional[str] = None,
+    service_name: Optional[str] = None,
+    instance_id: Optional[str] = None,
+    logs_endpoint: Optional[str] = None,
+    traces_endpoint: Optional[str] = None,
+    log_level: Optional[Union[str, int]] = None,
+    git_commit: Optional[str] = None,
+    github_url: Optional[str] = None,
 
-class IudexConfig:
+class _IudexConfig(IudexConfig):
     def __init__(
         self,
-        iudex_api_key: Optional[str] = None,
-        service_name: Optional[str] = None,
-        instance_id: Optional[str] = None,
-        logs_endpoint: Optional[str] = None,
-        traces_endpoint: Optional[str] = None,
-        log_level: Optional[Union[str, int]] = logging.NOTSET,
+        **kwargs: IudexConfig,
     ):
-        self.iudex_api_key = iudex_api_key or os.getenv("IUDEX_API_KEY")
+        self.iudex_api_key = kwargs.iudex_api_key or os.getenv("IUDEX_API_KEY")
         if not self.iudex_api_key:
             _logger.warning(
                 "Missing API key, no telemetry will be sent to Iudex. "
@@ -57,18 +63,18 @@ class IudexConfig:
             return
 
         self.service_name = (
-            service_name or os.getenv(OTEL_SERVICE_NAME) or DEFAULT_SERVICE_NAME
+            kwargs.service_name or os.getenv(OTEL_SERVICE_NAME) or DEFAULT_SERVICE_NAME
         )
-        self.instance_id = instance_id
+        self.instance_id = kwargs.instance_id
 
         self.logs_endpoint = (
-            logs_endpoint
+            kwargs.logs_endpoint
             or os.getenv(OTEL_EXPORTER_OTLP_LOGS_ENDPOINT)
             or DEFAULT_IUDEX_LOGS_ENDPOINT
         )
 
         self.traces_endpoint = (
-            traces_endpoint
+            kwargs.traces_endpoint
             or os.getenv(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
             or DEFAULT_IUDEX_TRACES_ENDPOINT
         )
@@ -76,7 +82,16 @@ class IudexConfig:
         log_level = log_level or os.getenv(OTEL_LOG_LEVEL)
         if isinstance(log_level, str):
             log_level = LOG_LEVEL_ATOI.get(log_level.upper())
-        self.log_level = log_level or logging.NOTSET
+        self.log_level = log_level or DEFAULT_LOG_LEVEL
+
+        self.git_commit = kwargs.git_commit or os.getenv("GIT_COMMIT")
+        if not self.git_commit:
+            try:
+                self.git_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+            except:
+                pass
+
+        self.github_url = kwargs.github_url or os.getenv("GITHUB_URL")
 
     def configure(self):
         if not self.iudex_api_key:
@@ -93,8 +108,11 @@ class IudexConfig:
         # configure common
         attributes = {}
         attributes["service.name"] = self.service_name
-        if self.instance_id:
-            attributes["service.instance.id"] = self.instance_id
+        attributes["service.instance.id"] = self.instance_id
+        attributes["git.commit"] = self.git_commit
+        attributes["github.url"] = self.github_url
+        # clean attributes
+        attributes = {key: value for key, value in attributes.items() if value is not None}
         resource = Resource.create(attributes)
 
         # set default headers to send iudex api key
@@ -121,7 +139,7 @@ class IudexConfig:
 
 def configure_logger(
     logger_name: Optional[str] = None,
-    log_level: Optional[Union[str, int]] = logging.NOTSET,
+    log_level: Optional[Union[str, int]] = None,
 ):
     """Instruments a named logger.
 
@@ -130,7 +148,7 @@ def configure_logger(
     """
     if isinstance(log_level, str):
         log_level = LOG_LEVEL_ATOI.get(log_level.upper())
-    log_level = log_level or logging.NOTSET
+    log_level = log_level or DEFAULT_LOG_LEVEL
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(log_level)

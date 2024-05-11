@@ -3,8 +3,10 @@ from typing import Optional, Union
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-from .instrumentation import IudexConfig
+from .instrumentation import _IudexConfig, IudexConfig
 
+
+# cleaned_dict = {key: value for key, value in original_dict.items() if value is not None}
 
 def instrument(
     app: FastAPI,
@@ -12,6 +14,8 @@ def instrument(
     instance_id: Optional[str] = None,
     iudex_api_key: Optional[str] = None,
     log_level: Optional[Union[int, str]] = None,
+    git_commit: Optional[str] = None,
+    github_url: Optional[str] = None,
     config: Optional[IudexConfig] = None,
 ):
     """Auto-instruments FastAPI app to send OTel signals to Iudex.
@@ -36,16 +40,17 @@ def instrument(
         config: IudexConfig object with more granular options.
             Will override all other args, so provide them to the object instead.
     """
-    kwargs = {}
-    if service_name:
-        kwargs["service_name"] = service_name
-    if instance_id:
-        kwargs["instance_id"] = instance_id
-    if iudex_api_key:
-        kwargs["iudex_api_key"] = iudex_api_key
-    if log_level:
-        kwargs["log_level"] = log_level
-    config = config or IudexConfig(**kwargs)
+    kwargs: IudexConfig = {
+        "iudex_api_key": iudex_api_key,
+        "service_name": service_name,
+        "instance_id": instance_id,
+        "logs_endpoint": None,
+        "traces_endpoint": None,
+        "log_level": log_level,
+        "git_commit": git_commit,
+        "github_url": github_url,
+    }
+    config = config or _IudexConfig(**kwargs)
 
     config.configure()
     FastAPIInstrumentor().instrument_app(app)

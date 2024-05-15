@@ -18,6 +18,7 @@ app = FastAPI()
 instrument(
   app=app,
   service_name=__name__, # or any string describing your service
+  env="development", # or any string for your env
 )
 ```
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`
@@ -37,6 +38,7 @@ pip install iudex
 from iudex.instrumentation.lambda import instrument
 instrument(
   service_name=__name__, # or any string describing your service
+  env="development", # or any string for your env
 )
 ```
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`

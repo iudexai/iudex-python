@@ -11,7 +11,10 @@ load_dotenv()
 
 api_key = os.getenv("IUDEX_API_KEY")
 app = FastAPI()
-instrument(app=app, service_name=__name__)
+iudex_config = instrument(app=app, service_name=__name__, env="development")
+print('GIT_COMMIT:', iudex_config.git_commit)
+print('GITHUB_URL:', iudex_config.github_url)
+print('API_KEY:', iudex_config.iudex_api_key)
 
 logger = logging.getLogger(__name__)
 

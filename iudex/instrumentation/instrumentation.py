@@ -39,22 +39,22 @@ DEFAULT_LOG_LEVEL = logging.INFO
 
 IUDEX_CONFIGURED = False
 
-class IudexConfig(TypedDict):
-    iudex_api_key: Optional[str] = None
-    service_name: Optional[str] = None
-    instance_id: Optional[str] = None
-    logs_endpoint: Optional[str] = None
-    traces_endpoint: Optional[str] = None
-    log_level: Optional[Union[str, int]] = None
-    git_commit: Optional[str] = None
-    github_url: Optional[str] = None
-    env: Optional[str] = None
-    attributes: Optional[Attributes] = None
+class IudexConfig(TypedDict, total=False):
+    iudex_api_key: Optional[str]
+    service_name: Optional[str]
+    instance_id: Optional[str]
+    logs_endpoint: Optional[str]
+    traces_endpoint: Optional[str]
+    log_level: Optional[Union[str, int]]
+    git_commit: Optional[str]
+    github_url: Optional[str]
+    env: Optional[str]
+    attributes: Optional[Attributes]
 
 class _IudexConfig():
     def __init__(
         self,
-        **kwargs: IudexConfig,
+        **kwargs,
     ):
         self.iudex_api_key = kwargs["iudex_api_key"] or os.getenv("IUDEX_API_KEY")
         if not self.iudex_api_key:
@@ -120,7 +120,7 @@ class _IudexConfig():
         attributes["env"] = self.env
         # clean attributes
         attributes = {key: value for key, value in attributes.items() if value is not None}
-        
+
         # add manual attributes
         attributes.update(self.attributes)
 

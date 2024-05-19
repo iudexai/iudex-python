@@ -39,6 +39,7 @@ DEFAULT_LOG_LEVEL = logging.INFO
 
 IUDEX_CONFIGURED = False
 
+
 class IudexConfig(TypedDict, total=False):
     iudex_api_key: Optional[str]
     service_name: Optional[str]
@@ -51,7 +52,8 @@ class IudexConfig(TypedDict, total=False):
     env: Optional[str]
     attributes: Optional[Attributes]
 
-class _IudexConfig():
+
+class _IudexConfig:
     def __init__(
         self,
         **kwargs,
@@ -65,7 +67,9 @@ class _IudexConfig():
             return
 
         self.service_name = (
-            kwargs["service_name"] or os.getenv(OTEL_SERVICE_NAME) or DEFAULT_SERVICE_NAME
+            kwargs["service_name"]
+            or os.getenv(OTEL_SERVICE_NAME)
+            or DEFAULT_SERVICE_NAME
         )
         self.instance_id = kwargs["instance_id"]
 
@@ -89,12 +93,14 @@ class _IudexConfig():
         self.git_commit = kwargs["git_commit"] or os.getenv("GIT_COMMIT")
         if not self.git_commit:
             try:
-                self.git_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+                self.git_commit = subprocess.check_output(
+                    ["git", "rev-parse", "HEAD"]
+                ).strip()
             except:
                 pass
 
         self.github_url = kwargs["github_url"] or os.getenv("GITHUB_URL")
-        
+
         self.env = kwargs["env"] or os.getenv("ENV") or os.getenv("ENVIRONMENT")
 
         self.attributes = kwargs.get("attributes", {})
@@ -119,7 +125,9 @@ class _IudexConfig():
         attributes["github.url"] = self.github_url
         attributes["env"] = self.env
         # clean attributes
-        attributes = {key: value for key, value in attributes.items() if value is not None}
+        attributes = {
+            key: value for key, value in attributes.items() if value is not None
+        }
 
         # add manual attributes
         attributes.update(self.attributes)
@@ -147,6 +155,53 @@ class _IudexConfig():
         set_tracer_provider(trace_provider)
 
         IUDEX_CONFIGURED = True
+
+
+def instrument(
+    service_name: Optional[str] = None,
+    instance_id: Optional[str] = None,
+    iudex_api_key: Optional[str] = None,
+    log_level: Optional[Union[int, str]] = None,
+    git_commit: Optional[str] = None,
+    github_url: Optional[str] = None,
+    env: Optional[str] = None,
+    config: Optional[IudexConfig] = None,
+):
+    """Auto-instruments app to send OTel signals to Iudex.
+
+    Invoke this function in your Lambda entrypoint.
+
+    Args:
+        service_name: Name of the service, e.g. "billing_service", __name__.
+            If not supplied, env var OTEL_SERVICE_NAME will be used.
+        instance_id: ID of the service instance, e.g. container id, pod name.
+        iudex_api_key: Your Iudex API key.
+            If not supplied, env var IUDEX_API_KEY will be used.
+        log_level: Logging level for the root logger.
+        git_commit: Commit hash of the currently deployed code.
+            Used with github_url to deep link telemetry to source code.
+        github_url: URL of the GitHub repository.
+            Used with git_commit to deep link telemetry to source code.
+        env: Environment of the service, e.g. "production", "staging".
+        config: IudexConfig object with more granular options.
+            Will override all other args, so provide them to the object instead.
+    """
+    config = config or {
+        "iudex_api_key": iudex_api_key,
+        "service_name": service_name,
+        "instance_id": instance_id,
+        "logs_endpoint": None,
+        "traces_endpoint": None,
+        "log_level": log_level,
+        "git_commit": git_commit,
+        "github_url": github_url,
+        "env": env,
+    }
+    iudex_config = _IudexConfig(**config)
+
+    iudex_config.configure()
+
+    return iudex_config
 
 
 def configure_logger(

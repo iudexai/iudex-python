@@ -3,7 +3,8 @@ from typing import Optional, Union
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-from .instrumentation import _IudexConfig, IudexConfig
+from .instrumentation import IudexConfig
+from .instrumentation import instrument as _instrument
 
 
 def instrument(
@@ -36,23 +37,25 @@ def instrument(
         iudex_api_key: Your Iudex API key.
             If not supplied, env var IUDEX_API_KEY will be used.
         log_level: Logging level for the root logger.
+        git_commit: Commit hash of the currently deployed code.
+            Used with github_url to deep link telemetry to source code.
+        github_url: URL of the GitHub repository.
+            Used with git_commit to deep link telemetry to source code.
+        env: Environment of the service, e.g. "production", "staging".
         config: IudexConfig object with more granular options.
             Will override all other args, so provide them to the object instead.
     """
-    config = config or {
-        "iudex_api_key": iudex_api_key,
-        "service_name": service_name,
-        "instance_id": instance_id,
-        "logs_endpoint": None,
-        "traces_endpoint": None,
-        "log_level": log_level,
-        "git_commit": git_commit,
-        "github_url": github_url,
-        "env": env,
-    }
-    iudex_config = _IudexConfig(**config)
+    iudex_config = _instrument(
+        service_name=service_name,
+        instance_id=instance_id,
+        iudex_api_key=iudex_api_key,
+        log_level=log_level,
+        git_commit=git_commit,
+        github_url=github_url,
+        env=env,
+        config=config,
+    )
 
-    iudex_config.configure()
     FastAPIInstrumentor().instrument_app(app)
 
     return iudex_config

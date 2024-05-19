@@ -35,7 +35,7 @@ pip install iudex
 2. Import `instrument` from `iudex` and invoke it in your entrypoint (usually `main.py`)
 ```python
 # Add this in your lambda function file (likely lambda_function.py)
-from iudex.instrumentation.lambda import instrument
+from iudex.instrumentation import instrument
 instrument(
   service_name=__name__, # or any string describing your service
   env="development", # or any string for your env

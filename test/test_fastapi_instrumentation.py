@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 from typing import Union
@@ -28,16 +29,18 @@ def read_root():
     recursive: dict = {"primitive": "value"}
     recursive["recursive"] = recursive
     error = ValueError("This is an error")
+    msg = f"Log from {datetime.datetime.now()}"
     logger.info(
-        "Hello World",
+        msg,
         extra={
             "my_attribute_1": "primitive value",
             "my_attribute_2": {"nested": {"name": "value"}},
             "my_attribute_3": recursive,
             "my_error": error,
+            "iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID",
         },
     )
-    return {"Hello": "World"}
+    return {"data": msg}
 
 
 @app.get("/items/{item_id}")

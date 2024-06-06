@@ -200,7 +200,6 @@ def instrument(
     iudex_config = _IudexConfig(**config)
 
     iudex_config.configure()
-
     return iudex_config
 
 

@@ -44,3 +44,18 @@ instrument(
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`
 4. You should be all set! Go to [https://app.iudex.ai/](https://app.iudex.ai/) and enter your API key
 5. Go to [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and press `Search` to view your logs
+
+
+# Slack Alerts
+
+You can easily configure per-log Slack alerts.
+
+First visit [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and click on the `Add to Slack` button in the top right.
+
+Once installed to your org, tag your logs with the `iudex.slack_channel_id` attribute.
+```python
+logger.info("Hello from Slack!", extra={"iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID"})
+```
+Your channel ID can be found by clicking the name of the channel in the top left, then at the bottom of the dialog that pops up.
+
+As long as the channel is pubic or you've invited the Iudex app, logs tagged with a specific channel ID will be sent as messages any time they are logged.

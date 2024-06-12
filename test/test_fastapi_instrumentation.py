@@ -4,25 +4,23 @@ import os
 from typing import Union
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
+from openai import OpenAI
 
-from iudex.instrumentation.fastapi import instrument
+from iudex.fastapi import instrument_fastapi
 
 load_dotenv()
 
 api_key = os.getenv("IUDEX_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
 app = FastAPI()
-iudex_config = instrument(app=app, service_name=__name__, env="development")
-print('GIT_COMMIT:', iudex_config.git_commit)
-print('GITHUB_URL:', iudex_config.github_url)
-print('API_KEY:', iudex_config.iudex_api_key)
+router = APIRouter()
+router2 = APIRouter()
 
-logger = logging.getLogger(__name__)
-
-
-def post_fork(server, worker):
-    instrument(app)
-
+oai_client = None
+if openai_api_key:
+    oai_client = OpenAI(api_key=openai_api_key)
 
 @app.get("/")
 def read_root():
@@ -40,7 +38,60 @@ def read_root():
             "iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID",
         },
     )
-    return {"data": msg}
+
+    # LLM call should be logged and traced automatically
+    chat = None
+    if oai_client:
+        chat = oai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Your name is Bob."},
+                {"role": "user", "content": "Hi what's your name?"}
+            ]
+        )
+
+    return {"data": msg, "chat": chat}
+
+@router.get('/health')
+def health():
+    return {'status': 'ok'}
+
+@router2.get('/v2/health')
+def v2_health():
+    return {'status': 'okok'}
+
+app.include_router(router2)
+
+iudex_config = instrument_fastapi(
+    app=app,
+    config={
+        "service_name": __name__,
+        "iudex_api_key": api_key,
+        "env": "dev",
+    }
+)
+
+app.include_router(router)
+
+# should 404
+@router.get('/health_2')
+def health_2():
+    return {'status': 'dokay'}
+
+# should 404
+@router2.get('/v2/health_2')
+def v2_healt_2():
+    return {'status': 'fffffffffffff'}
+
+print('GIT_COMMIT:', iudex_config.git_commit)
+print('GITHUB_URL:', iudex_config.github_url)
+print('API_KEY:', iudex_config.iudex_api_key)
+
+logger = logging.getLogger(__name__)
+
+
+def post_fork(server, worker):
+    instrument_fastapi(app)
 
 
 @app.get("/items/{item_id}")

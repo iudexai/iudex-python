@@ -1,13 +1,15 @@
+import logging
 from typing import Optional, Union
 
 from fastapi import FastAPI
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from .instrumentation import IudexConfig
 from .instrumentation import instrument as _instrument
 
+logger = logging.getLogger(__name__)
 
-def instrument(
+
+def instrument_fastapi(
     app: FastAPI,
     service_name: Optional[str] = None,
     instance_id: Optional[str] = None,
@@ -56,6 +58,15 @@ def instrument(
         config=config,
     )
 
-    FastAPIInstrumentor().instrument_app(app)
+    try:
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+        instrumentor = FastAPIInstrumentor()
+        if not instrumentor.is_instrumented_by_opentelemetry:
+            instrumentor.instrument()
+            instrumentor.instrument_app(app)
+        return iudex_config
+    except Exception as e:
+        logger.error(f"Error initializing OpenAI instrumentor: {e}")
 
     return iudex_config

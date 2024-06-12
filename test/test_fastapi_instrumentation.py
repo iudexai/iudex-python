@@ -5,7 +5,7 @@ from typing import Union
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter
-from openai import OpenAI
+import openai
 
 from iudex.fastapi import instrument_fastapi
 
@@ -18,9 +18,8 @@ app = FastAPI()
 router = APIRouter()
 router2 = APIRouter()
 
-oai_client = None
 if openai_api_key:
-    oai_client = OpenAI(api_key=openai_api_key)
+    openai.api_key = openai_api_key
 
 @app.get("/")
 def read_root():
@@ -41,8 +40,8 @@ def read_root():
 
     # LLM call should be logged and traced automatically
     chat = None
-    if oai_client:
-        chat = oai_client.chat.completions.create(
+    if openai.api_key:
+        chat = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Your name is Bob."},
@@ -83,23 +82,16 @@ def health_2():
 def v2_healt_2():
     return {'status': 'fffffffffffff'}
 
-print('GIT_COMMIT:', iudex_config.git_commit)
-print('GITHUB_URL:', iudex_config.github_url)
-print('API_KEY:', iudex_config.iudex_api_key)
-
 logger = logging.getLogger(__name__)
-
 
 def post_fork(server, worker):
     instrument_fastapi(app)
-
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     res = {"item_id": item_id, "q": q}
     logger.info(res)
     return res
-
 
 @app.post("/logs")
 def logs(data):

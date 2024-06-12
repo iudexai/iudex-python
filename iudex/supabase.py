@@ -2,6 +2,7 @@ import logging
 from typing import Optional, Union
 
 from supabase import create_client, Client
+from supabase._sync.client import SupabaseException
 
 from .instrumentation import IudexConfig
 from .instrumentation import instrument as _instrument
@@ -81,8 +82,14 @@ class SupabaseInstrumentor:
 
         try:
             self.client = create_client(self.supabase_url, self.supabase_key)
+            if not self.client:
+                raise SupabaseException("Invalid URL")
             return iudex_config
-        except Exception as e:
+        except SupabaseException as e:
             logger.error(f"Error initializing Supabase instrumentor: {e}")
+            raise e
+        except Exception as e:
+            logger.error(f"Unexpected error initializing Supabase instrumentor: {e}")
+            raise SupabaseException("Invalid API key")
 
         return iudex_config

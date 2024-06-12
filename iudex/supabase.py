@@ -7,6 +7,9 @@ from supabase._sync.client import SupabaseException
 from .instrumentation import IudexConfig
 from .instrumentation import instrument as _instrument
 
+from opentelemetry import trace
+from opentelemetry.instrumentation.utils import unwrap, wrap_function_wrapper
+
 logger = logging.getLogger(__name__)
 
 class SupabaseInstrumentor:
@@ -80,10 +83,24 @@ class SupabaseInstrumentor:
             config=config,
         )
 
+        tracer = trace.get_tracer(__name__)
+
+        def _trace_wrapper(wrapped, instance, args, kwargs):
+            with tracer.start_as_current_span(f"{wrapped.__name__}") as span:
+                for i, arg in enumerate(args):
+                    span.set_attribute(f"arg_{i}", arg)
+                for key, value in kwargs.items():
+                    span.set_attribute(key, value)
+                return wrapped(*args, **kwargs)
+
         try:
             self.client = create_client(self.supabase_url, self.supabase_key)
             if not self.client:
                 raise SupabaseException("Invalid URL")
+
+            # Monkeypatching the Supabase client methods
+            wrap_function_wrapper('supabase.Client', 'from_', _trace_wrapper)
+
             return iudex_config
         except SupabaseException as e:
             logger.error(f"Error initializing Supabase instrumentor: {e}")

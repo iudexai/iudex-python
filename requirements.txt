@@ -1,0 +1,6 @@
+supabase-py
+opentelemetry-api
+opentelemetry-instrumentation
+python-dotenv
+fastapi
+opentelemetry-exporter-otlp

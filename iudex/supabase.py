@@ -86,14 +86,20 @@ class SupabaseInstrumentor:
 
         def _trace_wrapper(wrapped):
             def wrapper(*args, **kwargs):
+                print(f"Starting span for {wrapped.__name__}")
                 with tracer.start_as_current_span(f"{wrapped.__name__}") as span:
                     for i, arg in enumerate(args):
                         span.set_attribute(f"arg_{i}", arg)
                     for key, value in kwargs.items():
                         span.set_attribute(key, value)
                     result = wrapped(*args, **kwargs)
-                    span.set_attribute("result", result)
-                    return result
+                    if isinstance(result, (bool, str, bytes, int, float)):
+                        span.set_attribute("result", result)
+                    elif isinstance(result, (list, tuple)):
+                        span.set_attribute("result", str(result))
+                    print(f"Span for {wrapped.__name__} is about to end")
+                print(f"Ending span for {wrapped.__name__}")
+                return result
             return wrapper
 
         try:

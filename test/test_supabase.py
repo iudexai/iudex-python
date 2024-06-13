@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.trace.export import InMemorySpanExporter
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter
 
 @pytest.fixture
 def supabase_instrumentor():
@@ -18,7 +18,7 @@ def supabase_instrumentor():
 @pytest.fixture
 def tracer_provider():
     provider = TracerProvider()
-    exporter = InMemorySpanExporter()
+    exporter = ConsoleSpanExporter()
     provider.add_span_processor(SimpleSpanProcessor(exporter))
     trace.set_tracer_provider(provider)
     return provider, exporter
@@ -78,7 +78,20 @@ def test_autoinstrumentation(mock_create_client, supabase_instrumentor):
 @patch('supabase.create_client')
 def test_trace_wrapper(mock_create_client, supabase_instrumentor, tracer_provider):
     mock_client = MagicMock(spec=Client)
-    with patch.object(Client, '__init__', lambda self, supabase_url, supabase_key, options=None: None):
+    mock_client._postgrest = None
+    mock_client.rest_url = "http://localhost:8000"  # Set the rest_url attribute
+    mock_client.headers = {"Authorization": "Bearer test_key"}
+    mock_client.schema = "public"
+    mock_client.postgrest_client_timeout = 60
+    def postgrest_side_effect():
+        print("Accessing postgrest property")
+        if mock_client._postgrest is None:
+            print("Initializing _postgrest attribute")
+            mock_client._postgrest = MagicMock()
+            mock_client._postgrest.from_.return_value = MagicMock()  # Ensure _postgrest is not None and has a from_ method
+        return mock_client._postgrest
+    mock_client.postgrest = property(postgrest_side_effect)
+    with patch.object(Client, '__init__', lambda self, supabase_url, supabase_key, options=None: setattr(self, 'rest_url', f"{supabase_url}/rest/v1") or setattr(self, '_postgrest', None)):
         mock_create_client.return_value = mock_client
         supabase_instrumentor.instrument_supabase(
             service_name="test_service",
@@ -90,6 +103,9 @@ def test_trace_wrapper(mock_create_client, supabase_instrumentor, tracer_provide
             env="test_env"
         )
         client = supabase_instrumentor.client
+        # Explicitly access the postgrest property to trigger lazy initialization
+        _ = client.postgrest
+        assert client.postgrest is not None  # Ensure postgrest is not None
         client.from_("test_table").select("*")
         provider, exporter = tracer_provider
         spans = exporter.get_finished_spans()

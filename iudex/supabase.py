@@ -8,7 +8,6 @@ from .instrumentation import IudexConfig
 from .instrumentation import instrument as _instrument
 
 from opentelemetry import trace
-from opentelemetry.instrumentation.utils import unwrap, wrap_function_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -85,13 +84,17 @@ class SupabaseInstrumentor:
 
         tracer = trace.get_tracer(__name__)
 
-        def _trace_wrapper(wrapped, instance, args, kwargs):
-            with tracer.start_as_current_span(f"{wrapped.__name__}") as span:
-                for i, arg in enumerate(args):
-                    span.set_attribute(f"arg_{i}", arg)
-                for key, value in kwargs.items():
-                    span.set_attribute(key, value)
-                return wrapped(*args, **kwargs)
+        def _trace_wrapper(wrapped):
+            def wrapper(*args, **kwargs):
+                with tracer.start_as_current_span(f"{wrapped.__name__}") as span:
+                    for i, arg in enumerate(args):
+                        span.set_attribute(f"arg_{i}", arg)
+                    for key, value in kwargs.items():
+                        span.set_attribute(key, value)
+                    result = wrapped(*args, **kwargs)
+                    span.set_attribute("result", result)
+                    return result
+            return wrapper
 
         try:
             self.client = create_client(self.supabase_url, self.supabase_key)
@@ -99,7 +102,7 @@ class SupabaseInstrumentor:
                 raise SupabaseException("Invalid URL")
 
             # Monkeypatching the Supabase client methods
-            wrap_function_wrapper('supabase.Client', 'from_', _trace_wrapper)
+            self.client.from_ = _trace_wrapper(self.client.from_)
 
             return iudex_config
         except SupabaseException as e:

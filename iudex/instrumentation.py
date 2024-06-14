@@ -93,6 +93,6 @@ def _instrument_sqlalchemy():
         from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
         instrumentor = SQLAlchemyInstrumentor()
         if not instrumentor.is_instrumented_by_opentelemetry:
-            instrumentor.instrument()
+            instrumentor.instrument(enable_commenter=True)
     except Exception as e:
         logger.exception(f"Failed to instrument SQLAlchemy: {e}")

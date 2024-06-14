@@ -52,6 +52,7 @@ def instrument(
 
     _instrument_openai()
     _instrument_supabase()
+    _instrument_sqlalchemy()
 
     return iudex_config
 
@@ -70,7 +71,7 @@ def _instrument_openai():
         if not instrumentor.is_instrumented_by_opentelemetry:
             instrumentor.instrument()
     except Exception as e:
-        logger.error(f"Failed to instrument OpenAI: {e}")
+        logger.exception(f"Failed to instrument OpenAI: {e}")
 
 def _instrument_supabase():
     try:
@@ -83,4 +84,15 @@ def _instrument_supabase():
         if not instrumentor.is_instrumented_by_opentelemetry:
             instrumentor.instrument()
     except Exception as e:
-        logger.exception(e)
+        logger.exception(f"Failed to instrument Supabase: {e}")
+
+def _instrument_sqlalchemy():
+    try:
+        if importlib.util.find_spec("sqlalchemy") is None:
+            return
+        from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+        instrumentor = SQLAlchemyInstrumentor()
+        if not instrumentor.is_instrumented_by_opentelemetry:
+            instrumentor.instrument()
+    except Exception as e:
+        logger.exception(f"Failed to instrument SQLAlchemy: {e}")

@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Optional, TypedDict, Union
 import subprocess
+import importlib.util
 
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
@@ -175,5 +176,33 @@ def configure_logger(
     logger_handler = LoggingHandler(level=log_level)
     logger_handler._get_attributes = get_attributes
     logger.addHandler(logger_handler)
+
+    _configure_loguru(log_level=log_level, logger_handler=logger_handler)
+
+    return logger
+
+
+def _configure_loguru(
+    log_level: Optional[Union[str, int]] = None,
+    logger_handler: Optional[LoggingHandler] = None,
+    format: Optional[str] = None,
+):
+    """Instruments Loguru to send logs to Iudex."""
+    if importlib.util.find_spec("loguru") is None:
+        return
+    from loguru import logger
+
+    if isinstance(log_level, str):
+        log_level = LOG_LEVEL_ATOI.get(log_level.upper())
+    log_level = log_level or DEFAULT_LOG_LEVEL
+
+    if not logger_handler:
+        logger_handler = LoggingHandler(level=log_level)
+        logger_handler._get_attributes = get_attributes
+
+    if not format:
+        format = "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name} | {message}"
+
+    logger.add(logger_handler, format=format)
 
     return logger

@@ -837,6 +837,27 @@ opentelemetry-instrumentation-dbapi = "0.46b0"
 instruments = ["psycopg2 (>=2.7.3.1)"]
 
 [[package]]
+name = "opentelemetry-instrumentation-sqlalchemy"
+version = "0.46b0"
+description = "OpenTelemetry SQLAlchemy instrumentation"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_instrumentation_sqlalchemy-0.46b0-py3-none-any.whl", hash = "sha256:9f04bb512023689841d9c19d99ccb101995af5dd7241bebca3829a919d045fb4"},
+    {file = "opentelemetry_instrumentation_sqlalchemy-0.46b0.tar.gz", hash = "sha256:067d7be297c590912e9e2a4cc39b68891230ed3c0646eb5375b493608205c176"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.46b0"
+opentelemetry-semantic-conventions = "0.46b0"
+packaging = ">=21.0"
+wrapt = ">=1.11.2"
+
+[package.extras]
+instruments = ["sqlalchemy"]
+
+[[package]]
 name = "opentelemetry-proto"
 version = "1.25.0"
 description = "OpenTelemetry Python Proto"
@@ -2132,4 +2153,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "436a52ecc0852c9978b9b6a5f2b2dc4df20aa22974e1e7539f69a8e8f4f2321b"
+content-hash = "7a8a0a9acc581f6eeb192ef753f0dbf5b523e17c62002059cbb652d6f26715bd"

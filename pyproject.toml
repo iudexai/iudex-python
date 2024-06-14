@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iudex"
-version = "0.7.2"
+version = "0.7.3"
 description = ""
 authors = ["Drake Wong <drake@iudex.ai>"]
 readme = "README.md"
@@ -13,6 +13,7 @@ opentelemetry-instrumentation-fastapi = "^0.46b0"
 opentelemetry-instrumentation-openai = "^0.22.0"
 opentelemetry-instrumentation-psycopg2 = "^0.46b0"
 wrapt = "^1.16.0"
+opentelemetry-instrumentation-sqlalchemy = "^0.46b0"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.1"

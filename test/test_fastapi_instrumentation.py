@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 from typing import Union
+from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter
@@ -13,6 +14,8 @@ load_dotenv()
 
 api_key = os.getenv("IUDEX_API_KEY")
 openai_api_key = os.getenv("OPENAI_API_KEY")
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
 
 app = FastAPI()
 router = APIRouter()
@@ -22,8 +25,68 @@ oai_client = None
 if openai_api_key:
     oai_client = OpenAI(api_key=openai_api_key)
 
+supabase = None
+if supabase_url and supabase_key:
+    from supabase import create_client
+    supabase = create_client(supabase_url, supabase_key)
+
 @app.get("/")
 def read_root():
+    recursive: dict = {"primitive": "value"}
+    recursive["recursive"] = recursive
+    error = ValueError("This is an error")
+    msg = f"Log from {datetime.datetime.now()}"
+    logger.info(
+        msg,
+        extra={
+            "my_attribute_1": "primitive value",
+            "my_attribute_2": {"nested": {"name": "value"}},
+            "my_attribute_3": recursive,
+            "my_error": error,
+            "iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID",
+        },
+    )
+
+    # LLM call should be logged and traced automatically
+    chat = None
+    if oai_client:
+        chat = oai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Your name is Bob."},
+                {"role": "user", "content": "Hi what's your name?"}
+            ]
+        )
+
+    return {"data": msg, "chat": chat}
+
+@app.get("/supabase")
+def test_supabase():
+    if not oai_client or not supabase:
+        raise ValueError("Please set OPENAI_API_KEY and SUPABASE_URL/SUPABASE_KEY")
+    logger.info("Starting test_supabase_instrumentation")
+    logger.info("Creating chat")
+    res = oai_client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": "tell me a joke involving supabase and opentelemetry!",
+            }
+        ],
+    )
+    content = res.choices[0].message.content
+    logger.info("No op Fetching 0 chats")
+    res = supabase.table("chat").select("id, content, thread(id)").eq("id", uuid4()).execute()
+    logger.info(f"Storing LLM response: {content}")
+    supabase.table("chat").upsert({"id": str(uuid4()), "content": content}).execute()
+    logger.info("Fetching chat")
+    res = supabase.table("chat").select("*").execute()
+    logger.info("Finished test_supabase_instrumentation")
+    return {"data": res}
+
+@app.get("/openai")
+def test_openai():
     recursive: dict = {"primitive": "value"}
     recursive["recursive"] = recursive
     error = ValueError("This is an error")
@@ -67,7 +130,7 @@ iudex_config = instrument_fastapi(
     config={
         "service_name": __name__,
         "iudex_api_key": api_key,
-        "env": "dev",
+        "env": "production",
     }
 )
 

@@ -19,7 +19,7 @@ def instrument(
 ):
     """Auto-instruments app to send OTel signals to Iudex.
 
-    Invoke this function in your Lambda entrypoint.
+    Invoke this function in your app entrypoint.
 
     Args:
         service_name: Name of the service, e.g. "billing_service", __name__.
@@ -51,6 +51,7 @@ def instrument(
     iudex_config.configure()
 
     _instrument_openai()
+    _instrument_supabase()
 
     return iudex_config
 
@@ -70,3 +71,16 @@ def _instrument_openai():
             instrumentor.instrument()
     except Exception as e:
         logger.error(f"Failed to instrument OpenAI: {e}")
+
+def _instrument_supabase():
+    try:
+        if importlib.util.find_spec("supabase") is None:
+            return
+        if importlib.util.find_spec("postgrest") is None:
+            return
+        from .supabase import SupabaseInstrumentor
+        instrumentor = SupabaseInstrumentor()
+        if not instrumentor.is_instrumented_by_opentelemetry:
+            instrumentor.instrument()
+    except Exception as e:
+        logger.exception(e)

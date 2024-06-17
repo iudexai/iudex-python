@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter
+from fastapi.responses import StreamingResponse
 from openai import OpenAI
 
 from iudex.fastapi import instrument_fastapi
@@ -46,6 +47,8 @@ def read_root():
             "iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID",
         },
     )
+    print("test print list %s", [1, 2, 3])
+    logger.info("test log list %s", [1, 2, 3])
 
     # LLM call should be logged and traced automatically
     chat = None
@@ -168,3 +171,26 @@ def read_item(item_id: int, q: Union[str, None] = None):
 def logs(data):
     print(data)
     return {"data": data}
+
+@app.get("/neutrino")
+def neutrino():
+    neutrino_api_key = os.getenv("NEUTRINO_API_KEY")
+    nclient = OpenAI(
+        base_url="https://router.neutrinoapp.com/api/engines",
+        api_key=neutrino_api_key,
+    )
+    logger.info("Starting neutrino test")
+    logger.info("Creating chat")
+    def stream_res():
+        for chunk in nclient.chat.completions.create(
+            model="chat-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Tell me a funny joke.",
+                }
+            ],
+            stream=True,
+        ):
+            yield chunk.choices[0].delta.content or ""
+    return StreamingResponse(stream_res())

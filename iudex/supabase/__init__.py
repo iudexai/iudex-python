@@ -6,8 +6,8 @@ import postgrest._async.request_builder
 import postgrest._sync.request_builder
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
-from opentelemetry.semconv.attributes import http_attributes, server_attributes
 from opentelemetry.semconv._incubating.attributes import db_attributes
+from opentelemetry.semconv.attributes import http_attributes, server_attributes
 from opentelemetry.trace import SpanKind, Status, StatusCode, Tracer, get_tracer
 from opentelemetry.util.types import AttributeValue
 from postgrest._async.request_builder import (
@@ -43,7 +43,7 @@ class SupabaseInstrumentor(BaseInstrumentor):
             )
         self._span_name_prefix = span_name_prefix.strip()
 
-        self._should_record_statement = os.getenv("OTEL_PYTHON_SUPABASE_RECORD_STATEMENT", "true").lower() == "true"
+        self._should_record_statement = os.getenv("IUDEX_SHOULD_RECORD_SQL_STATEMENT", "true").lower() == "true"
 
         super().__init__()
 

@@ -61,7 +61,7 @@ def _instrument_openai():
     try:
         if importlib.util.find_spec("openai") is None:
             return
-        from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+        from .openai import OpenAIInstrumentor
 
         instrumentor = OpenAIInstrumentor(
             enrich_assistant=True,

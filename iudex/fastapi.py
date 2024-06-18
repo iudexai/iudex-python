@@ -4,7 +4,7 @@ from typing import Optional, Union
 from fastapi import FastAPI
 
 from .instrumentation import IudexConfig
-from .instrumentation import instrument as _instrument
+from .instrumentation import instrument
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ def instrument_fastapi(
         config: IudexConfig object with more granular options.
             Will override all other args, so provide them to the object instead.
     """
-    iudex_config = _instrument(
+    iudex_config = instrument(
         service_name=service_name,
         instance_id=instance_id,
         iudex_api_key=iudex_api_key,

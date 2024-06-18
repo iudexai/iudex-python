@@ -73,6 +73,7 @@ def _instrument_openai():
     except Exception as e:
         logger.exception(f"Failed to instrument OpenAI: {e}")
 
+
 def _instrument_supabase():
     try:
         if importlib.util.find_spec("supabase") is None:
@@ -85,6 +86,7 @@ def _instrument_supabase():
             instrumentor.instrument()
     except Exception as e:
         logger.exception(f"Failed to instrument Supabase: {e}")
+
 
 def _instrument_sqlalchemy():
     try:

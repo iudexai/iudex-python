@@ -7,6 +7,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import StreamingResponse
+from iudex import traced_fn
 from openai import OpenAI
 
 from iudex.fastapi import instrument_fastapi
@@ -31,37 +32,11 @@ if supabase_url and supabase_key:
     from supabase import create_client
     supabase = create_client(supabase_url, supabase_key)
 
+logger = logging.getLogger(__name__)
+
 @app.get("/")
 def read_root():
-    recursive: dict = {"primitive": "value"}
-    recursive["recursive"] = recursive
-    error = ValueError("This is an error")
-    msg = f"Log from {datetime.datetime.now()}"
-    logger.info(
-        msg,
-        extra={
-            "my_attribute_1": "primitive value",
-            "my_attribute_2": {"nested": {"name": "value"}},
-            "my_attribute_3": recursive,
-            "my_error": error,
-            "iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID",
-        },
-    )
-    print("test print list %s", [1, 2, 3])
-    logger.info("test log list %s", [1, 2, 3])
-
-    # LLM call should be logged and traced automatically
-    chat = None
-    if oai_client:
-        chat = oai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "Your name is Bob."},
-                {"role": "user", "content": "Hi what's your name?"}
-            ]
-        )
-
-    return {"data": msg, "chat": chat}
+    return {"data": "hello world"}
 
 @app.get("/supabase")
 def test_supabase():
@@ -153,7 +128,6 @@ print('GIT_COMMIT:', iudex_config.git_commit)
 print('GITHUB_URL:', iudex_config.github_url)
 print('API_KEY:', iudex_config.iudex_api_key)
 
-logger = logging.getLogger(__name__)
 
 
 def post_fork(server, worker):
@@ -194,3 +168,6 @@ def neutrino():
         ):
             yield chunk.choices[0].delta.content or ""
     return StreamingResponse(stream_res())
+
+if __name__ == "__main__":
+    traced_fn()

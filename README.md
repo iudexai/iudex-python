@@ -2,21 +2,30 @@
 
 Next generation observability.
 
-# Getting Started
 
+### Table of contents
+- [Iudex](#iudex)
+    - [Table of contents](#table-of-contents)
+- [Getting Started](#getting-started)
+    - [FastAPI](#fastapi)
+    - [Lambda](#lambda)
+    - [Custom Functions](#custom-functions)
+- [Slack Alerts](#slack-alerts)
+
+
+# Getting Started
 Instrumenting your Python service to send logs to Iudex just takes a few steps.
 
 1. Pip install dependencies
 ```bash
 pip install iudex
 ```
-2. Import `instrument` from `iudex` and invoke it in your entrypoint (usually `main.py`)
+2. At the top of your entrypoint (usually `main.py`), import `instrument` from `iudex` and invoke it.
 ```python
-# Add this in your lambda function file (likely lambda_function.py)
 from iudex.instrumentation import instrument
 instrument(
   service_name=__name__, # or any string describing your service
-  env="development", # or any string for your env
+  env="production", # or any string for your env
 )
 ```
 3. Make sure the app has access to the environment variable `IUDEX_API_KEY`
@@ -25,10 +34,9 @@ instrument(
 
 
 ### FastAPI
-
 If you use FastAPI, we highly recommend instrumenting your app for even more detailed logging and tracing.
 
-Setup is the mostly the same as above, but you'll instead import `instrument_fastapi` where you define your FastAPI app (usually `main.py`).
+Setup is the mostly the same as above, but you'll instead import `instrument_fastapi` where you define your FastAPI app (usually `main.py`) at the top of your file.
 ```python
 # Add this
 from iudex import instrument_fastapi
@@ -40,12 +48,45 @@ app = FastAPI()
 instrument_fastapi(
   app=app,
   service_name=__name__, # or any string describing your service
-  env="development", # or any string for your env
+  env="production", # or any string for your env
 )
 ```
 
-# Slack Alerts
 
+### Lambda
+If you use lambdas, we recommend instrumenting and adding tracing to your handlers.
+
+1. Add this to the top of your handler file
+```python
+from iudex import instrument, trace_lambda
+instrument(
+  app=app,
+  service_name=__name__, # or any string describing your service
+  env="production", # or any string for your env
+)
+```
+
+2. Add the decorator to the lambda handler
+```python
+@trace_lambda(name="name_of_my_lambda")
+def lambda_handler(event, context):
+  pass
+```
+
+
+### Custom Functions
+We recommend that you trace important functions in your code base that would be helpful to see when following a stack trace. It is required to call `instrument` earlier in the code before the traced function is invoked.
+
+```python
+from iudex import instrument, trace
+
+@trace()
+def my_function(arg1, arg2):
+  pass
+```
+
+
+# Slack Alerts
 You can easily configure Slack alerts on a per-log basis.
 
 First visit [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and click on the `Add to Slack` button in the top right.

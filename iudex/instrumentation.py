@@ -1,10 +1,101 @@
-import importlib.util
 import logging
 from typing import Optional, Union
 
 from .config import IudexConfig, _IudexConfig
+from .utils import maybe_instrument_lib
 
 logger = logging.getLogger(__name__)
+
+INSTRUMENTATION_LIBS = [
+    # iudex custom
+    (
+        ".openai",
+        "OpenAIInstrumentor",
+        {
+            "enrich_assistant": True,
+            "enrich_token_usage": True,
+            "exception_logger": logger.error,
+        },
+    ),
+    (".supabase", "SupabaseInstrumentor", {}),
+
+    # opentelemetry-python-contrib
+    # NOTE: these are excluded because they are already instrumented by higher level libs
+    # - asgi
+    # - dbapi
+    # - starlette
+    # - wsgi
+    ("opentelemetry.instrumentation.aio_pika", "AioPikaInstrumentor", {}),
+    ("opentelemetry.instrumentation.aiohttp_client", "AioHttpClientInstrumentor", {}),
+    # broken: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2053
+    # ("opentelemetry.instrumentation.aiohttp_server", "AioHttpServerInstrumentor", {}),
+    ("opentelemetry.instrumentation.aiopg", "AiopgInstrumentor", {}),
+    ("opentelemetry.instrumentation.asyncio", "AsyncioInstrumentor", {}),
+    ("opentelemetry.instrumentation.asyncpg", "AsyncpgInstrumentor", {}),
+    ("opentelemetry.instrumentation.aws_lambda", "AwsLambdaInstrumentor", {}),
+    ("opentelemetry.instrumentation.boto", "BotoInstrumentor", {}),
+    ("opentelemetry.instrumentation.boto3sqs", "Boto3SQSInstrumentor", {}),
+    ("opentelemetry.instrumentation.botocore", "BotocoreInstrumentor", {}),
+    ("opentelemetry.instrumentation.cassandra", "CassandraInstrumentor", {}),
+    ("opentelemetry.instrumentation.celery", "CeleryInstrumentor", {}),
+    ("opentelemetry.instrumentation.confluent_kafka", "ConfluentKafkaInstrumentor", {}),
+    ("opentelemetry.instrumentation.django", "DjangoInstrumentor", {}),
+    ("opentelemetry.instrumentation.elasticsearch", "ElasticsearchInstrumentor", {}),
+    ("opentelemetry.instrumentation.falcon", "FalconInstrumentor", {}),
+    ("opentelemetry.instrumentation.flask", "FlaskInstrumentor", {}),
+    ("opentelemetry.instrumentation.grpc", "GrpcInstrumentor", {}),
+    ("opentelemetry.instrumentation.httpx", "HTTPXClientInstrumentor", {}),
+    ("opentelemetry.instrumentation.jinja2", "Jinja2Instrumentor", {}),
+    ("opentelemetry.instrumentation.kafka_python", "KafkaPythonInstrumentor", {}),
+    ("opentelemetry.instrumentation.logging", "LoggingInstrumentor", {}),
+    ("opentelemetry.instrumentation.mysql", "MySQLInstrumentor", {}),
+    ("opentelemetry.instrumentation.mysqlclient", "MySQLclientInstrumentor", {}),
+    ("opentelemetry.instrumentation.pika", "PikaInstrumentor", {}),
+    ("opentelemetry.instrumentation.psycopg", "PsycopgInstrumentor", {}),
+    ("opentelemetry.instrumentation.psycopg2", "Psycopg2Instrumentor", {}),
+    ("opentelemetry.instrumentation.pymemcache", "PymemcacheInstrumentor", {}),
+    ("opentelemetry.instrumentation.pymongo", "PymongoInstrumentor", {}),
+    ("opentelemetry.instrumentation.pymysql", "PymysqlInstrumentor", {}),
+    ("opentelemetry.instrumentation.pyramid", "PyramidInstrumentor", {}),
+    ("opentelemetry.instrumentation.redis", "RedisInstrumentor", {}),
+    ("opentelemetry.instrumentation.remoulade", "RemouladeInstrumentor", {}),
+    ("opentelemetry.instrumentation.requests", "RequestsInstrumentor", {}),
+    ("opentelemetry.instrumentation.sklearn", "SklearnInstrumentor", {}),
+    (
+        "opentelemetry.instrumentation.sqlalchemy",
+        "SQLAlchemyInstrumentor",
+        {"enable_commenter": True},
+    ),
+    ("opentelemetry.instrumentation.sqlite3", "SQLite3Instrumentor", {}),
+    ("opentelemetry.instrumentation.system_metrics", "SystemMetricsInstrumentor", {}),
+    ("opentelemetry.instrumentation.threading", "ThreadingInstrumentor", {}),
+    ("opentelemetry.instrumentation.tornado", "TornadoInstrumentor", {}),
+    ("opentelemetry.instrumentation.tortoiseorm", "TortoiseORMInstrumentor", {}),
+    ("opentelemetry.instrumentation.urllib", "URLLibInstrumentor", {}),
+    ("opentelemetry.instrumentation.urllib3", "URLLib3Instrumentor", {}),
+
+    # openllmetry
+    ("opentelemetry.instrumentation.alephalpha", "AlephAlphaInstrumentor", {}),
+    ("opentelemetry.instrumentation.anthropic", "AnthropicInstrumentor", {}),
+    ("opentelemetry.instrumentation.bedrock", "BedrockInstrumentor", {}),
+    ("opentelemetry.instrumentation.chromadb", "ChromaDBInstrumentor", {}),
+    ("opentelemetry.instrumentation.cohere", "CohereInstrumentor", {}),
+    ("opentelemetry.instrumentation.google_generativeai", "GoogleGenerativeAiInstrumentor", {}),
+    ("opentelemetry.instrumentation.haystack", "HaystackInstrumentor", {}),
+    ("opentelemetry.instrumentation.langchain", "LangChainInstrumentor", {}),
+    ("opentelemetry.instrumentation.llamaindex", "LlamaIndexInstrumentor", {}),
+    ("opentelemetry.instrumentation.milvus", "MilvusInstrumentor", {}),
+    ("opentelemetry.instrumentation.mistralai", "MistralAIInstrumentor", {}),
+    ("opentelemetry.instrumentation.ollama", "OllamaInstrumentor", {}),
+    ("opentelemetry.instrumentation.pinecone", "PineconeInstrumentor", {}),
+    ("opentelemetry.instrumentation.qdrant", "QdrantInstrumentor", {}),
+    ("opentelemetry.instrumentation.replicate", "ReplicateInstrumentor", {}),
+    ("opentelemetry.instrumentation.together", "TogetherAiInstrumentor", {}),
+    ("opentelemetry.instrumentation.transformers", "TransformersInstrumentor", {}),
+    ("opentelemetry.instrumentation.vertexai", "VertexAIInstrumentor", {}),
+    ("opentelemetry.instrumentation.watsonx", "WatsonxInstrumentor", {}),
+    ("opentelemetry.instrumentation.weaviate", "WeaviateInstrumentor", {})
+]
 
 
 def instrument(
@@ -50,51 +141,7 @@ def instrument(
     iudex_config = _IudexConfig(**config)
     iudex_config.configure()
 
-    _instrument_openai()
-    _instrument_supabase()
-    _instrument_sqlalchemy()
+    for module_path, instrumentor_class_name, kwargs in INSTRUMENTATION_LIBS:
+        maybe_instrument_lib(module_path, instrumentor_class_name, **kwargs)
 
     return iudex_config
-
-
-def _instrument_openai():
-    try:
-        if importlib.util.find_spec("openai") is None:
-            return
-        from .openai import OpenAIInstrumentor
-
-        instrumentor = OpenAIInstrumentor(
-            enrich_assistant=True,
-            enrich_token_usage=True,
-            exception_logger=logger.error,
-        )
-        if not instrumentor.is_instrumented_by_opentelemetry:
-            instrumentor.instrument()
-    except Exception as e:
-        logger.exception(f"Failed to instrument OpenAI: {e}")
-
-
-def _instrument_supabase():
-    try:
-        if importlib.util.find_spec("supabase") is None:
-            return
-        if importlib.util.find_spec("postgrest") is None:
-            return
-        from .supabase import SupabaseInstrumentor
-        instrumentor = SupabaseInstrumentor()
-        if not instrumentor.is_instrumented_by_opentelemetry:
-            instrumentor.instrument()
-    except Exception as e:
-        logger.exception(f"Failed to instrument Supabase: {e}")
-
-
-def _instrument_sqlalchemy():
-    try:
-        if importlib.util.find_spec("sqlalchemy") is None:
-            return
-        from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-        instrumentor = SQLAlchemyInstrumentor()
-        if not instrumentor.is_instrumented_by_opentelemetry:
-            instrumentor.instrument(enable_commenter=True)
-    except Exception as e:
-        logger.exception(f"Failed to instrument SQLAlchemy: {e}")

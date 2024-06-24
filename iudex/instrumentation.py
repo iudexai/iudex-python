@@ -31,7 +31,7 @@ INSTRUMENTATION_LIBS = [
     # ("opentelemetry.instrumentation.aiohttp_server", "AioHttpServerInstrumentor", {}),
     ("opentelemetry.instrumentation.aiopg", "AiopgInstrumentor", {}),
     ("opentelemetry.instrumentation.asyncio", "AsyncioInstrumentor", {}),
-    ("opentelemetry.instrumentation.asyncpg", "AsyncpgInstrumentor", {}),
+    ("opentelemetry.instrumentation.asyncpg", "AsyncPGInstrumentor", {}),
     ("opentelemetry.instrumentation.aws_lambda", "AwsLambdaInstrumentor", {}),
     ("opentelemetry.instrumentation.boto", "BotoInstrumentor", {}),
     ("opentelemetry.instrumentation.boto3sqs", "Boto3SQSInstrumentor", {}),

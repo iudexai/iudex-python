@@ -147,7 +147,7 @@ class _IudexConfig:
         set_logger_provider(logger_provider)
         logging.basicConfig(level=self.log_level)
         # add handler to root logger
-        configure_logger(log_level=self.log_level)
+        configure_logging(log_level=self.log_level)
 
         # configure tracer
         trace_provider = TracerProvider(resource=resource)
@@ -158,9 +158,42 @@ class _IudexConfig:
         IUDEX_CONFIGURED = True
 
 
+def configure_logging(
+    logger_name: Optional[str] = None,
+    log_level: Optional[Union[str, int]] = None,
+):
+    monkeypatch_LogRecord_getMessage()
+
+    logger_handler = LoggingHandler(level=log_level)
+    logger_handler._get_attributes = get_attributes
+
+    configure_logger(logger_name=logger_name, log_level=log_level, logger_handler=logger_handler)
+    configure_loguru(log_level=log_level, logger_handler=logger_handler)
+
+
+def monkeypatch_LogRecord_getMessage():
+    """Monkey patches LogRecord.getMessages.
+    
+    Changes getMessages to also handle *args as a list of strings instead of only as
+    a list of string format arguments.
+    """
+    from logging import LogRecord
+    _getMessage = LogRecord.getMessage
+    def getMessage(self: LogRecord):
+        try:
+            return _getMessage(self)
+        except:
+            msg = str(self.msg)
+            if self.args:
+                msg = msg + ' ' + ' '.join(self.args)
+            return msg
+    LogRecord.getMessage = getMessage
+
+
 def configure_logger(
     logger_name: Optional[str] = None,
     log_level: Optional[Union[str, int]] = None,
+    logger_handler: Optional[LoggingHandler] = None,
 ):
     """Instruments a named logger.
 
@@ -173,16 +206,17 @@ def configure_logger(
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(log_level)
-    logger_handler = LoggingHandler(level=log_level)
-    logger_handler._get_attributes = get_attributes
-    logger.addHandler(logger_handler)
 
-    _configure_loguru(log_level=log_level, logger_handler=logger_handler)
+    if not logger_handler:
+        logger_handler = LoggingHandler(level=log_level)
+        logger_handler._get_attributes = get_attributes
+
+    logger.addHandler(logger_handler)
 
     return logger
 
 
-def _configure_loguru(
+def configure_loguru(
     log_level: Optional[Union[str, int]] = None,
     logger_handler: Optional[LoggingHandler] = None,
     format: Optional[str] = None,

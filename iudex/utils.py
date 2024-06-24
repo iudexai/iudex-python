@@ -52,7 +52,7 @@ def maybe_instrument_lib(module_path: str, instrumentor_class_name: str, **kwarg
         if str(e) == "'NoneType' object has no attribute 'rsplit'":
             logger.debug(f"Skipping {instrumentor_class_name} instrumentation: {e}")
             return
-        raise e
+        logger.exception(f"Failed to instrument with {instrumentor_class_name}: {e}")
 
     except Exception as e:
         logger.exception(f"Failed to instrument with {instrumentor_class_name}: {e}")

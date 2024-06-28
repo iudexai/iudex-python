@@ -38,6 +38,12 @@ logger = logging.getLogger(__name__)
 def read_root():
     return {"data": "hello world"}
 
+@app.get("/print_error")
+def print_error():
+    e = ValueError("This is an error")
+    logger.exception(e)
+    return {"data": "hello world"}
+
 @app.get("/supabase")
 def test_supabase():
     if not oai_client or not supabase:

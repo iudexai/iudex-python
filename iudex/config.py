@@ -1,8 +1,13 @@
+# ruff: noqa: E402
+# ^ because monkeypatches must import and run before other imports
+from .monkeypatches.attributes import patched_get_attributes
+from .monkeypatches.logging import monkeypatch_LogRecord_getMessage
+
+import importlib.util
 import logging
 import os
-from typing import Optional, TypedDict, Union
 import subprocess
-import importlib.util
+from typing import Optional, TypedDict, Union
 
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
@@ -16,12 +21,10 @@ from opentelemetry.sdk.environment_variables import (
     OTEL_LOG_LEVEL,
     OTEL_SERVICE_NAME,
 )
-from opentelemetry.sdk.resources import Resource, Attributes
+from opentelemetry.sdk.resources import Attributes, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import set_tracer_provider
-
-from .attributes import get_attributes
 
 _logger = logging.getLogger(__name__)
 
@@ -165,30 +168,12 @@ def configure_logging(
     monkeypatch_LogRecord_getMessage()
 
     logger_handler = LoggingHandler(level=log_level)
-    logger_handler._get_attributes = get_attributes
+    logger_handler._get_attributes = patched_get_attributes
 
-    configure_logger(logger_name=logger_name, log_level=log_level, logger_handler=logger_handler)
+    configure_logger(
+        logger_name=logger_name, log_level=log_level, logger_handler=logger_handler
+    )
     configure_loguru(log_level=log_level, logger_handler=logger_handler)
-
-
-def monkeypatch_LogRecord_getMessage():
-    """Monkey patches LogRecord.getMessages.
-    
-    Changes getMessages to also handle *args as a list of strings instead of only as
-    a list of string format arguments.
-    """
-    from logging import LogRecord
-    _getMessage = LogRecord.getMessage
-    def getMessage(self: LogRecord):
-        try:
-            return _getMessage(self)
-        except:
-            msg = str(self.msg)
-            if self.args:
-                msg = msg + ' ' + ' '.join(self.args)
-            return msg
-    LogRecord.getMessage = getMessage
-
 
 def configure_logger(
     logger_name: Optional[str] = None,
@@ -209,7 +194,7 @@ def configure_logger(
 
     if not logger_handler:
         logger_handler = LoggingHandler(level=log_level)
-        logger_handler._get_attributes = get_attributes
+        logger_handler._get_attributes = patched_get_attributes
 
     logger.addHandler(logger_handler)
 
@@ -232,7 +217,7 @@ def configure_loguru(
 
     if not logger_handler:
         logger_handler = LoggingHandler(level=log_level)
-        logger_handler._get_attributes = get_attributes
+        logger_handler._get_attributes = patched_get_attributes
 
     if not format:
         format = "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name} | {message}"

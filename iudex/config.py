@@ -1,6 +1,6 @@
 # ruff: noqa: E402
 # ^ because monkeypatches must import and run before other imports
-from .monkeypatches.attributes import patched_get_attributes
+from .monkeypatches.get_attributes import patched_get_attributes
 from .monkeypatches.logging import monkeypatch_LogRecord_getMessage
 
 import importlib.util

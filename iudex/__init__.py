@@ -1,8 +1,10 @@
 # ruff: noqa: E402
 # ^ because monkeypatches must import and run before other imports
 from .monkeypatches.encode_value import monkeypatch_encode_value
+from .monkeypatches.clean_attribute import monkeypatch_clean_attribute
 
 monkeypatch_encode_value()
+monkeypatch_clean_attribute()
 
 from .config import IudexConfig, configure_logger
 from .instrumentation import instrument

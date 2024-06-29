@@ -36,7 +36,7 @@ def maybe_instrument_lib(module_path: str, instrumentor_class_name: str, **kwarg
 
         if instrumentor.is_instrumented_by_opentelemetry:
             logger.info(
-                f"Skipping {instrumentor_class_name} instrmentation as it was already instrumented."
+                f"Skipping {instrumentor_class_name} instrumentation as it was already instrumented."
             )
             return
 

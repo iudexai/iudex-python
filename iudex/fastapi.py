@@ -22,6 +22,9 @@ def instrument_fastapi(
 ):
     """Auto-instruments FastAPI app to send OTel signals to Iudex.
 
+    NOTE: We recommend using `iudex.instrument` instead, which includes FastAPI.
+    This function is provided to instrument a specific FastAPI app.
+
     Invoke this function in your FastAPI entrypoint.
 
     If you use Gunicorn, invoke it within a post_fork hook:

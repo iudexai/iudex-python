@@ -42,14 +42,15 @@ INSTRUMENTATION_LIBS = [
     ("opentelemetry.instrumentation.django", "DjangoInstrumentor", {}),
     ("opentelemetry.instrumentation.elasticsearch", "ElasticsearchInstrumentor", {}),
     ("opentelemetry.instrumentation.falcon", "FalconInstrumentor", {}),
+    ("opentelemetry.instrumentation.fastapi", "FastAPIInstrumentor", {}),
     ("opentelemetry.instrumentation.flask", "FlaskInstrumentor", {}),
     ("opentelemetry.instrumentation.grpc", ["GrpcInstrumentorClient", "GrpcInstrumentorServer"], {}),
     ("opentelemetry.instrumentation.httpx", "HTTPXClientInstrumentor", {}),
     ("opentelemetry.instrumentation.jinja2", "Jinja2Instrumentor", {}),
-    ("opentelemetry.instrumentation.kafka_python", "KafkaPythonInstrumentor", {}),
+    ("opentelemetry.instrumentation.kafka_python", "KafkaInstrumentor", {}),
     ("opentelemetry.instrumentation.logging", "LoggingInstrumentor", {}),
     ("opentelemetry.instrumentation.mysql", "MySQLInstrumentor", {}),
-    ("opentelemetry.instrumentation.mysqlclient", "MySQLclientInstrumentor", {}),
+    ("opentelemetry.instrumentation.mysqlclient", "MySQLClientInstrumentor", {}),
     ("opentelemetry.instrumentation.pika", "PikaInstrumentor", {}),
     ("opentelemetry.instrumentation.psycopg", "PsycopgInstrumentor", {}),
     ("opentelemetry.instrumentation.psycopg2", "Psycopg2Instrumentor", {}),
@@ -127,6 +128,13 @@ def instrument(
         config: IudexConfig object with more granular options.
             Will override all other args, so provide them to the object instead.
     """
+    for module_path, instrumentor_class_name, kwargs in INSTRUMENTATION_LIBS:
+        if isinstance(instrumentor_class_name, list):
+            for name in instrumentor_class_name:
+                maybe_instrument_lib(module_path, name, **kwargs)
+            continue
+        maybe_instrument_lib(module_path, instrumentor_class_name, **kwargs)
+
     config = config or {
         "iudex_api_key": iudex_api_key,
         "service_name": service_name,
@@ -140,12 +148,5 @@ def instrument(
     }
     iudex_config = _IudexConfig(**config)
     iudex_config.configure()
-
-    for module_path, instrumentor_class_name, kwargs in INSTRUMENTATION_LIBS:
-        if isinstance(instrumentor_class_name, "list"):
-            for name in instrumentor_class_name:
-                maybe_instrument_lib(module_path, name, **kwargs)
-            continue
-        maybe_instrument_lib(module_path, instrumentor_class_name, **kwargs)
 
     return iudex_config

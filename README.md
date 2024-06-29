@@ -123,6 +123,21 @@ Go to [https://app.iudex.ai/](https://app.iudex.ai/) to start viewing your logs 
 
 For libraries that are not autoinstrumented or custom deployment environments, follow the instructions from the table of contents for that specific library.
 
+### Django
+
+Add the following code to your `manage.py` file in the `main` function entrypoint.
+
+```python
+from iudex import instrument
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+
+    instrument()
+
+    # ...
+```
 
 ### Modal
 Because Modal only loads libraries after running a particular serverless function, you need follow [their suggestions for using packages](https://modal.com/docs/guide/custom-container#add-python-packages-with-pip_install).

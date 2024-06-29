@@ -43,7 +43,7 @@ INSTRUMENTATION_LIBS = [
     ("opentelemetry.instrumentation.elasticsearch", "ElasticsearchInstrumentor", {}),
     ("opentelemetry.instrumentation.falcon", "FalconInstrumentor", {}),
     ("opentelemetry.instrumentation.flask", "FlaskInstrumentor", {}),
-    ("opentelemetry.instrumentation.grpc", "GrpcInstrumentor", {}),
+    ("opentelemetry.instrumentation.grpc", ["GrpcInstrumentorClient", "GrpcInstrumentorServer"], {}),
     ("opentelemetry.instrumentation.httpx", "HTTPXClientInstrumentor", {}),
     ("opentelemetry.instrumentation.jinja2", "Jinja2Instrumentor", {}),
     ("opentelemetry.instrumentation.kafka_python", "KafkaPythonInstrumentor", {}),
@@ -55,7 +55,7 @@ INSTRUMENTATION_LIBS = [
     ("opentelemetry.instrumentation.psycopg2", "Psycopg2Instrumentor", {}),
     ("opentelemetry.instrumentation.pymemcache", "PymemcacheInstrumentor", {}),
     ("opentelemetry.instrumentation.pymongo", "PymongoInstrumentor", {}),
-    ("opentelemetry.instrumentation.pymysql", "PymysqlInstrumentor", {}),
+    ("opentelemetry.instrumentation.pymysql", "PyMySQLInstrumentor", {}),
     ("opentelemetry.instrumentation.pyramid", "PyramidInstrumentor", {}),
     ("opentelemetry.instrumentation.redis", "RedisInstrumentor", {}),
     ("opentelemetry.instrumentation.remoulade", "RemouladeInstrumentor", {}),
@@ -142,6 +142,10 @@ def instrument(
     iudex_config.configure()
 
     for module_path, instrumentor_class_name, kwargs in INSTRUMENTATION_LIBS:
+        if isinstance(instrumentor_class_name, "list"):
+            for name in instrumentor_class_name:
+                maybe_instrument_lib(module_path, name, **kwargs)
+            continue
         maybe_instrument_lib(module_path, instrumentor_class_name, **kwargs)
 
     return iudex_config

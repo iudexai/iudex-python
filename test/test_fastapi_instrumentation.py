@@ -10,7 +10,9 @@ from fastapi.responses import StreamingResponse
 from iudex import traced_fn
 from openai import OpenAI
 
-from iudex.fastapi import instrument_fastapi
+from iudex import instrument
+
+iudex_config = instrument()
 
 load_dotenv()
 
@@ -36,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 @app.get("/")
 def read_root():
+    logger.info("Hello world")
     return {"data": "hello world"}
 
 @app.get("/print_error")
@@ -109,15 +112,6 @@ def v2_health():
 
 app.include_router(router2)
 
-iudex_config = instrument_fastapi(
-    app=app,
-    config={
-        "service_name": __name__,
-        "iudex_api_key": api_key,
-        "env": "production",
-    }
-)
-
 app.include_router(router)
 
 # should 404
@@ -133,12 +127,6 @@ def v2_healt_2():
 print('GIT_COMMIT:', iudex_config.git_commit)
 print('GITHUB_URL:', iudex_config.github_url)
 print('API_KEY:', iudex_config.iudex_api_key)
-
-
-
-def post_fork(server, worker):
-    instrument_fastapi(app)
-
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):

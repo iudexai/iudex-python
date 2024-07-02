@@ -17,6 +17,7 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.environment_variables import (
     OTEL_EXPORTER_OTLP_HEADERS,
     OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
+    OTEL_EXPORTER_OTLP_TIMEOUT,
     OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
     OTEL_LOG_LEVEL,
     OTEL_SERVICE_NAME,
@@ -31,6 +32,9 @@ _logger = logging.getLogger(__name__)
 DEFAULT_SERVICE_NAME = "unknown_service:python"
 DEFAULT_IUDEX_LOGS_ENDPOINT = "https://api.iudex.ai/resource_logs"
 DEFAULT_IUDEX_TRACES_ENDPOINT = "https://api.iudex.ai/traces"
+DEFAULT_LOG_LEVEL = logging.INFO
+DEFAULT_TIMEOUT = 60
+
 LOG_LEVEL_ATOI = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
@@ -39,7 +43,6 @@ LOG_LEVEL_ATOI = {
     "CRITICAL": logging.CRITICAL,
     "NOTSET": logging.NOTSET,
 }
-DEFAULT_LOG_LEVEL = logging.INFO
 
 IUDEX_CONFIGURED = False
 
@@ -55,6 +58,7 @@ class IudexConfig(TypedDict, total=False):
     github_url: Optional[str]
     env: Optional[str]
     attributes: Optional[Attributes]
+    timeout: Optional[int]
 
 
 class _IudexConfig:
@@ -109,6 +113,8 @@ class _IudexConfig:
 
         self.attributes = kwargs.get("attributes", {})
 
+        self._timeout = kwargs.get("timeout") or int(os.getenv(OTEL_EXPORTER_OTLP_TIMEOUT, DEFAULT_TIMEOUT))
+
     def configure(self):
         if not self.iudex_api_key:
             _logger.warning(
@@ -145,7 +151,7 @@ class _IudexConfig:
 
         # configure logger
         logger_provider = LoggerProvider(resource=resource)
-        log_exporter = OTLPLogExporter(endpoint=self.logs_endpoint, headers=headers)
+        log_exporter = OTLPLogExporter(endpoint=self.logs_endpoint, headers=headers, timeout=self._timeout)
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
         set_logger_provider(logger_provider)
         logging.basicConfig(level=self.log_level)
@@ -154,7 +160,7 @@ class _IudexConfig:
 
         # configure tracer
         trace_provider = TracerProvider(resource=resource)
-        span_exporter = OTLPSpanExporter(endpoint=self.traces_endpoint, headers=headers)
+        span_exporter = OTLPSpanExporter(endpoint=self.traces_endpoint, headers=headers, timeout=self._timeout)
         trace_provider.add_span_processor(BatchSpanProcessor(span_exporter))
         set_tracer_provider(trace_provider)
 

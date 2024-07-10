@@ -181,7 +181,9 @@ Once installed to your workspace, there are two ways to create alerts.
 ### Search Based Alerts
 These alerts will fire anytime a log fulfills your search criteria.
 
-Just run any search and click `create alert` in the top right. From there, select the Slack channels to notify (or paste in a channel ID).
+Just run any search and click `create alert` above the `Search` button. From there, select the Slack channels to notify (or paste in a channel ID).
+
+You can also view, pause, and delete your alerts anytime by clicking `alerts ->` in the top right.
 
 ### Per-Log Alerts
 

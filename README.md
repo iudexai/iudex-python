@@ -176,7 +176,18 @@ You can easily configure Slack alerts on a per-log basis.
 
 First visit [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and click on the `Add to Slack` button in the top right.
 
-Once installed to your workspace, tag your logs with the `iudex.slack_channel_id` attribute.
+Once installed to your workspace, there are two ways to create alerts.
+
+### Search Based Alerts
+These alerts will fire anytime a log fulfills your search criteria.
+
+Just run any search and click `create alert` in the top right. From there, select the Slack channels to notify (or paste in a channel ID).
+
+### Per-Log Alerts
+
+These alerts will fire for a specific logger call.
+
+Just tag your logs with the `iudex.slack_channel_id` attribute.
 ```python
 logger.info("Hello from Slack!", extra={"iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID"})
 ```

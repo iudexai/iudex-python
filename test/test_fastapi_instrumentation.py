@@ -1,3 +1,7 @@
+from iudex import instrument
+
+iudex_config = instrument()
+
 import datetime
 import logging
 import os
@@ -9,10 +13,6 @@ from fastapi import FastAPI, APIRouter
 from fastapi.responses import StreamingResponse
 from iudex import traced_fn
 from openai import OpenAI
-
-from iudex import instrument
-
-iudex_config = instrument()
 
 load_dotenv()
 

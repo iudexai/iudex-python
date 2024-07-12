@@ -76,7 +76,7 @@ pip install iudex
 ✅ urllib3
 ✅ wsgi
 
-[Supported libaries from OpenLLMetry](https://github.com/traceloop/openllmetry?tab=readme-ov-file#-what-do-we-instrument):
+[Supported libraries from OpenLLMetry](https://github.com/traceloop/openllmetry?tab=readme-ov-file#-what-do-we-instrument):
 
 ✅ OpenAI / Azure OpenAI
 ✅ Anthropic
@@ -109,19 +109,24 @@ Supported libraries:
 ✅ supabase
 
 
-Add this code the top of your entrypoint file (usually `main.py`).
+Add this code to the VERY TOP of your entrypoint file, before all imports.
 ```python
 from iudex.instrumentation import instrument
 instrument(
-  service_name=<your_service_name>, # highly encouraged
-  env=<your_environment>, # optional
+  service_name="YOUR_SERVICE_NAME", # highly encouraged
+  env="prod", # dev, local, etc
 )
+
+# ^ must run above all imports
+import ...
 ```
+Iudex auto-instrumentation must run before imports in order to patch libraries with specialized, no-overhead instrumentation code.
+
 You should be all set! Iudex will now record logs and trace the entire life cycle for each request.
 
 Go to [https://app.iudex.ai/](https://app.iudex.ai/) to start viewing your logs and traces!
 
-For libraries that are not autoinstrumented or custom deployment environments, follow the instructions from the table of contents for that specific library.
+For libraries that are not auto-instrumented or custom deployment environments, follow the instructions from the table of contents for that specific library.
 
 ### Django
 
@@ -176,20 +181,7 @@ You can easily configure Slack alerts on a per-log basis.
 
 First visit [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and click on the `Add to Slack` button in the top right.
 
-Once installed to your workspace, there are two ways to create alerts.
-
-### Search Based Alerts
-These alerts will fire anytime a log fulfills your search criteria.
-
-Just run any search and click `create alert` above the `Search` button. From there, select the Slack channels to notify (or paste in a channel ID).
-
-You can also view, pause, and delete your alerts anytime by clicking `alerts ->` in the top right.
-
-### Per-Log Alerts
-
-These alerts will fire for a specific logger call.
-
-Just tag your logs with the `iudex.slack_channel_id` attribute.
+Once installed to your workspace, tag your logs with the `iudex.slack_channel_id` attribute.
 ```python
 logger.info("Hello from Slack!", extra={"iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID"})
 ```

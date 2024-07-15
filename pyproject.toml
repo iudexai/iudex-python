@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iudex"
-version = "0.9.11"
+version = "0.9.12"
 description = ""
 authors = ["Drake Wong <drake@iudex.ai>"]
 readme = "README.md"
@@ -11,7 +11,7 @@ opentelemetry-exporter-otlp-proto-http = "^1.25.0"
 opentelemetry-distro = "^0.46b0"
 wrapt = "^1.16.0"
 opentelemetry-semantic-conventions-ai = "^0.3.1"
-tiktoken = "^0.3.3"
+tiktoken = ">=0.3.3,<1"
 # opentelemetry-contrib-instrumentation
 # should just be the main package, but one dep is broken: https://github.com/open-telemetry/opentelemetry-python-contrib/issues/2053
 opentelemetry-instrumentation-aio-pika = "^0.46b0"

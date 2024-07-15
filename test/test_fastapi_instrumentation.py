@@ -85,7 +85,6 @@ def test_openai():
             "my_attribute_2": {"nested": {"name": "value"}},
             "my_attribute_3": recursive,
             "my_error": error,
-            "iudex.slack_channel_id": "YOUR_SLACK_CHANNEL_ID",
         },
     )
 

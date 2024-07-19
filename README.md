@@ -7,6 +7,8 @@ Next generation observability.
     - [Table of contents](#table-of-contents)
 - [Getting Started](#getting-started)
     - [Autoinstrument](#autoinstrument)
+    - [Custom Attributes](#custom-attributes)
+- [Integrations](#integrations)
     - [Django](#django)
     - [Modal](#modal)
     - [Tracing Your Functions](#tracing-your-functions)
@@ -109,8 +111,8 @@ Supported libraries:
 ✅ sqlalchemy
 ✅ supabase
 
-
 Add this code to the VERY TOP of your entrypoint file, before all imports.
+
 ```python
 from iudex.instrumentation import instrument
 instrument(
@@ -121,13 +123,28 @@ instrument(
 # ^ must run above all imports
 import ...
 ```
+
 Iudex auto-instrumentation must run before imports in order to patch libraries with specialized, no-overhead instrumentation code.
 
 You should be all set! Iudex will now record logs and trace the entire life cycle for each request.
 
 Go to [https://app.iudex.ai/](https://app.iudex.ai/) to start viewing your logs and traces!
 
-For libraries that are not auto-instrumented or custom deployment environments, follow the instructions from the table of contents for that specific library.
+### Custom Attributes
+
+You can add custom attributes to your logs and traces by passing a dictionary to the `extra` parameter of the logging functions.
+
+```python
+logger.info("Hello Iudex!", extra={"my_custom_attribute": "my_custom_value"})
+```
+
+These attributes will be searchable and displayed in the Iudex dashboard.
+
+# Integrations
+
+Some frameworks are auto-instrumented through different entrypoints.
+Find your framework below and follow the instructions to get set up.
+(If it's not listed, the above section will work just fine!)
 
 ### Django
 

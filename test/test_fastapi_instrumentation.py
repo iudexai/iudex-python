@@ -1,9 +1,9 @@
 from iudex import instrument
-from iudex.trace import set_attribute
+from iudex.trace import set_attribute, trace
 
 iudex_config = instrument(
     service_name="test_fastapi_instrumentation",
-    env="dev",
+    env="prod",
 )
 
 import datetime
@@ -40,9 +40,14 @@ if supabase_url and supabase_key:
 
 logger = logging.getLogger(__name__)
 
+@trace()
+def my_print_helper():
+    print("test", "print", sep=", ", end="!")
+
 @app.get("/")
 def read_root():
     logger.info("Hello world")
+    my_print_helper()
     set_attribute("foo", "bar")
     return {"data": "hello world"}
 
@@ -127,10 +132,6 @@ def health_2():
 @router2.get('/v2/health_2')
 def v2_healt_2():
     return {'status': 'fffffffffffff'}
-
-print('GIT_COMMIT:', iudex_config.git_commit)
-print('GITHUB_URL:', iudex_config.github_url)
-print('API_KEY:', iudex_config.iudex_api_key)
 
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):

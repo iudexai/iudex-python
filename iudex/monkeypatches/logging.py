@@ -18,4 +18,3 @@ def monkeypatch_LogRecord_getMessage():
             return msg
 
     LogRecord.getMessage = getMessage
-

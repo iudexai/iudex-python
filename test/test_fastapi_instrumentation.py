@@ -1,6 +1,9 @@
 from iudex import instrument
 
-iudex_config = instrument()
+iudex_config = instrument(
+    service_name="test_fastapi_instrumentation",
+    env="dev",
+)
 
 import datetime
 import logging

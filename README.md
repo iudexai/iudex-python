@@ -7,6 +7,7 @@ Next generation observability.
     - [Table of contents](#table-of-contents)
 - [Getting Started](#getting-started)
     - [Autoinstrument](#autoinstrument)
+    - [Django](#django)
     - [Modal](#modal)
     - [Tracing Your Functions](#tracing-your-functions)
 - [Slack Alerts](#slack-alerts)

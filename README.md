@@ -7,7 +7,8 @@ Next generation observability.
     - [Table of contents](#table-of-contents)
 - [Getting Started](#getting-started)
     - [Autoinstrument](#autoinstrument)
-    - [Custom Attributes](#custom-attributes)
+    - [Log Attributes](#log-attributes)
+    - [Trace Span Attributes](#trace-span-attributes)
 - [Integrations](#integrations)
     - [Django](#django)
     - [Modal](#modal)
@@ -130,15 +131,27 @@ You should be all set! Iudex will now record logs and trace the entire life cycl
 
 Go to [https://app.iudex.ai/](https://app.iudex.ai/) to start viewing your logs and traces!
 
-### Custom Attributes
+### Log Attributes
 
-You can add custom attributes to your logs and traces by passing a dictionary to the `extra` parameter of the logging functions.
+You can add custom attributes to your logs by passing a dictionary to the `extra` parameter of the logging functions.
 
 ```python
 logger.info("Hello Iudex!", extra={"my_custom_attribute": "my_custom_value"})
 ```
 
-These attributes will be searchable and displayed in the Iudex dashboard.
+These attributes will be searchable and displayed on your logs in the Iudex dashboard.
+
+### Trace Span Attributes
+You can add custom attributes to the current trace span (if one exists) as follows:
+
+```python
+from iudex import.trace import set_attribute
+# ... inside some function/span
+set_attribute(key="my_custom_attribute", value="my_custom_value")
+# ... rest of function
+```
+
+These attributes will be searchable and displayed on your trace spans in the Iudex dashboard.
 
 # Integrations
 

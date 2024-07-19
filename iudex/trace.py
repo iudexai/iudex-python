@@ -56,3 +56,9 @@ def trace_lambda(
 def traced_fn():
     """Traced function"""
     return "traced"
+
+def set_attribute(key: str, value: Any):
+    """Set an attribute in the current span."""
+    span = otel_trace.get_current_span()
+    if span:
+        span.set_attribute(key, value)

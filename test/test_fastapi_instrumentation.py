@@ -1,4 +1,5 @@
 from iudex import instrument
+from iudex.trace import set_attribute
 
 iudex_config = instrument(
     service_name="test_fastapi_instrumentation",
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 @app.get("/")
 def read_root():
     logger.info("Hello world")
+    set_attribute("foo", "bar")
     return {"data": "hello world"}
 
 @app.get("/print_error")

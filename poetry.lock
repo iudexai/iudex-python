@@ -2073,24 +2073,6 @@ opentelemetry-semantic-conventions-ai = "0.3.1"
 instruments = ["ollama (>=0.2.0,<0.3.0)"]
 
 [[package]]
-name = "opentelemetry-instrumentation-openai"
-version = "0.23.0"
-description = "OpenTelemetry OpenAI instrumentation"
-optional = false
-python-versions = "<4,>=3.9"
-files = [
-    {file = "opentelemetry_instrumentation_openai-0.23.0-py3-none-any.whl", hash = "sha256:44999e0c096d17179025fec63751fd132da10a9c12ca8885305c5fbd60b7cae6"},
-    {file = "opentelemetry_instrumentation_openai-0.23.0.tar.gz", hash = "sha256:3b4f1af2395739c190a15c79b2fe594f5eda4b2fd4030c80e49f44faf3380199"},
-]
-
-[package.dependencies]
-opentelemetry-api = ">=1.25.0,<2.0.0"
-opentelemetry-instrumentation = ">=0.46b0,<0.47"
-opentelemetry-semantic-conventions = ">=0.46b0,<0.47"
-opentelemetry-semantic-conventions-ai = "0.3.1"
-tiktoken = ">=0.6.0,<1"
-
-[[package]]
 name = "opentelemetry-instrumentation-pika"
 version = "0.46b0"
 description = "OpenTelemetry pika instrumentation"
@@ -2337,24 +2319,6 @@ opentelemetry-util-http = "0.46b0"
 
 [package.extras]
 instruments = ["requests (>=2.0,<3.0)"]
-
-[[package]]
-name = "opentelemetry-instrumentation-sklearn"
-version = "0.46b0"
-description = "OpenTelemetry sklearn instrumentation"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "opentelemetry_instrumentation_sklearn-0.46b0-py3-none-any.whl", hash = "sha256:52cb5dcd24e7bd2e21a1450dbce8df3fc2b63ef30e9f288480fbed55b7ebbd52"},
-    {file = "opentelemetry_instrumentation_sklearn-0.46b0.tar.gz", hash = "sha256:26068e49b47d762365fe533a2e0d2da99c42005dde3895ed60bd89f40710a762"},
-]
-
-[package.dependencies]
-opentelemetry-api = ">=1.12,<2.0"
-opentelemetry-instrumentation = "0.46b0"
-
-[package.extras]
-instruments = ["scikit-learn (>=0.24.0,<0.25.0)"]
 
 [[package]]
 name = "opentelemetry-instrumentation-sqlalchemy"
@@ -4265,4 +4229,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "6368f0c3701c33a035dcc5951cd9d7dd32b729dacf38531ab41217b0d3b0bb10"
+content-hash = "62ac72253b6245985da489e29e9134b720bf93f6c4f59e2cd498fec11aa2d4e9"

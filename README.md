@@ -195,14 +195,19 @@ def square(x):
 ```
 
 ### Tracing Your Functions
-We recommend tracing important functions in your codebase, i.e. when it would be helpful to see in a stack trace.
+Iudex automatically traces framework and library functions.
+For instance, if you use a framework like FastAPI or Django, Iudex will record subsequent library calls, durations, and metadata throughout the lifecycle of each request.
 
-Note: You must call `iudex.instrument()` earlier in your code before the traced function is invoked.
+That said, you can also get more granular and trace your own functions.
+A good heuristic for "when should I trace my own function" is whenever it might be helpful to see the function's stack trace.
+
+Note: You must call `iudex.instrument()` earlier in your code (per above) before the traced function is invoked.
 
 ```python
 from iudex import instrument, trace
+instrument(...)
 
-@trace()
+@trace
 def my_function(arg1, arg2):
   pass
 ```

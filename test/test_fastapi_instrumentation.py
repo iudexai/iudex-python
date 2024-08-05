@@ -15,7 +15,6 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import StreamingResponse
-from iudex import traced_fn
 from openai import OpenAI
 
 load_dotenv()
@@ -168,5 +167,12 @@ def neutrino():
             yield chunk.choices[0].delta.content or ""
     return StreamingResponse(stream_res())
 
-if __name__ == "__main__":
-    traced_fn()
+@trace
+def test_trace_helper(hello_name: str):
+    logger.info(f"Hello {hello_name} from manual trace")
+
+@app.get("/trace")
+def test_trace():
+    logger.info("start trace")
+    test_trace_helper("world")
+    logger.info("done trace")

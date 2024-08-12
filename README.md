@@ -115,14 +115,14 @@ Supported libraries:
 Add this code to the VERY TOP of your entrypoint file, before all imports.
 
 ```python
-from iudex.instrumentation import instrument
+from iudex import instrument
 instrument(
   service_name="YOUR_SERVICE_NAME", # highly encouraged
   env="prod", # dev, local, etc
+  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
 )
 
 # ^ must run above all imports
-import ...
 ```
 
 Iudex auto-instrumentation must run before imports in order to patch libraries with specialized, no-overhead instrumentation code.
@@ -145,7 +145,7 @@ These attributes will be searchable and displayed on your logs in the Iudex dash
 You can add custom attributes to the current trace span (if one exists) as follows:
 
 ```python
-from iudex import.trace import set_attribute
+from iudex import set_attribute
 # ... inside some function/span
 set_attribute(key="my_custom_attribute", value="my_custom_value")
 # ... rest of function
@@ -205,7 +205,13 @@ Note: You must call `iudex.instrument()` earlier in your code (per above) before
 
 ```python
 from iudex import instrument, trace
-instrument(...)
+instrument(
+  service_name="YOUR_SERVICE_NAME", # highly encouraged
+  env="prod", # dev, local, etc
+  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+)
+
+# ^ must run above all imports
 
 @trace
 def my_function(arg1, arg2):

@@ -102,7 +102,7 @@ class _IudexConfig:
         if not self.git_commit:
             try:
                 self.git_commit = subprocess.check_output(
-                    ["git", "rev-parse", "HEAD"]
+                    ["git", "rev-parse", "HEAD", "2>/dev/null"]
                 ).strip()
             except:
                 pass

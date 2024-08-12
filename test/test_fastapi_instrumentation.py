@@ -2,8 +2,9 @@ from iudex import instrument
 from iudex.trace import set_attribute, trace
 
 iudex_config = instrument(
-    service_name="test_fastapi_instrumentation",
+    service_name="joke-service",
     env="prod",
+    iudex_api_key="ixk_72a6ce96872c7c3798c9135ccacc162e69962812ba08bbc7343e39ff9208897a",
 )
 
 import datetime
@@ -176,3 +177,61 @@ def test_trace():
     logger.info("start trace")
     test_trace_helper("world")
     logger.info("done trace")
+
+
+from guardrails import Guard
+from guardrails.utils.telemetry_utils import default_otel_collector_tracer
+from guardrails.hub import (
+    ValidLength,
+)
+
+@app.get("/guardrails")
+def test_guardrails():
+    print('Testing guardrails')
+
+    guard = Guard().use_many(
+        ValidLength(
+            min=0,
+            max=50
+        ),
+    )
+    guard.configure(
+        tracer=default_otel_collector_tracer('guard')
+    )
+
+    res = guard(
+        model="gpt-4o-mini",
+        messages=[{
+            "role": "user",
+            "content": "Tell me a joke about space",
+        }],
+        temperature=1,
+    )
+
+    print(f"Validated output: {res.validated_output}")
+
+    return {"data": res}
+
+@app.get("/joke/{subject}")
+def tell_joke(subject):
+    if not subject:
+        raise ValueError("I can't tell a joke without a subject!")
+
+    guard = Guard().use_many(
+        ValidLength(min=0, max=50),
+    )
+    guard.configure(
+        tracer=default_otel_collector_tracer('joke-guard')
+    )
+
+    res = guard(
+        model="gpt-4o-mini",
+        messages=[{
+            "role": "user",
+            "content": f"Tell me a joke about {subject}",
+        }],
+        temperature=1,
+    )
+
+    # subject="space" => "Why did the sun go to school? To get a little brighter!"
+    return res.validated_output

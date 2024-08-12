@@ -8,6 +8,7 @@ Next generation observability.
 ✅ logger
 ✅ sqlalchemy
 ✅ supabase
+✅ modal
 
 [Supported libraries from OTel](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/instrumentation/README.md):
 

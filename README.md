@@ -2,33 +2,13 @@
 
 Next generation observability.
 
-### Table of contents
-- [Iudex](#iudex)
-    - [Table of contents](#table-of-contents)
-- [Getting Started](#getting-started)
-    - [Autoinstrument](#autoinstrument)
-    - [Log Attributes](#log-attributes)
-    - [Trace Span Attributes](#trace-span-attributes)
-- [Integrations](#integrations)
-    - [Django](#django)
-    - [Modal](#modal)
-    - [Tracing Your Functions](#tracing-your-functions)
-- [Slack Alerts](#slack-alerts)
 
+### Supported Libraries
 
-# Getting Started
-Instrumenting your Python code with Iudex just takes a few steps.
+✅ logger
+✅ sqlalchemy
+✅ supabase
 
-1. Install dependencies.
-```bash
-pip install iudex
-```
-2. Follow the below instructions for your frameworks or use autoinstrumentation.
-3. Make sure your app has access to the environment variable `IUDEX_API_KEY`. You can manually add this to `instrument` as well if you use something like a secrets manager.
-4. You should be all set! Go to [https://app.iudex.ai/](https://app.iudex.ai/) and enter your API key.
-5. Go to [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and press `Search` to view your logs.
-
-### Autoinstrument
 [Supported libraries from OTel](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/instrumentation/README.md):
 
 ✅ aio-pika
@@ -106,11 +86,36 @@ pip install iudex
 ✅ Haystack
 ✅ LiteLLM
 
-Supported libraries:
 
-✅ logger
-✅ sqlalchemy
-✅ supabase
+### Table of contents
+- [Iudex](#iudex)
+    - [Supported Libraries](#supported-libraries)
+    - [Table of contents](#table-of-contents)
+- [Getting Started](#getting-started)
+    - [Autoinstrumentation (Most Common)](#autoinstrumentation-most-common)
+    - [Log Attributes](#log-attributes)
+    - [Trace Span Attributes](#trace-span-attributes)
+- [Integrations](#integrations)
+    - [Django](#django)
+    - [Modal](#modal)
+    - [Tracing Your Functions](#tracing-your-functions)
+- [Slack Alerts](#slack-alerts)
+
+
+# Getting Started
+Instrumenting your Python code with Iudex just takes a few steps.
+
+1. Install dependencies.
+```bash
+pip install iudex
+```
+2. Follow the below instructions for your frameworks or use autoinstrumentation.
+3. Make sure your app has access to the environment variable `IUDEX_API_KEY`. You can manually add this to `instrument` as well if you use something like a secrets manager.
+4. You should be all set! Go to [https://app.iudex.ai/](https://app.iudex.ai/) and enter your API key.
+5. Go to [https://app.iudex.ai/logs](https://app.iudex.ai/logs) and press `Search` to view your logs.
+
+
+### Autoinstrumentation (Most Common)
 
 Add this code to the VERY TOP of your entrypoint file, before all imports.
 

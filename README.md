@@ -9,6 +9,7 @@ Next generation observability.
 ✅ sqlalchemy
 ✅ supabase
 ✅ modal
+✅ streamlit
 
 [Supported libraries from OTel](https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/instrumentation/README.md):
 
@@ -99,6 +100,8 @@ Next generation observability.
 - [Integrations](#integrations)
     - [Django](#django)
     - [Modal](#modal)
+    - [Streamlit](#streamlit)
+      - [Using a main function](#using-a-main-function)
     - [Tracing Your Functions](#tracing-your-functions)
 - [Slack Alerts](#slack-alerts)
 
@@ -199,6 +202,65 @@ def square(x):
     logger.info("This log shows up on Iudex!")
     return x**2
 ```
+
+### Streamlit
+Streamlit works by running a static Python script which means all you need to do is encapsulate the scripts contents.
+
+1. Import `iudex` and call `instrument()` to the top of your  Streamlit app file. 
+2. Add `start_trace` and `end_trace` to the top and bottom of the file, respectively.
+
+```python
+from iudex import instrument, start_trace, end_trace, trace
+instrument(
+  service_name="YOUR_SERVICE_NAME", # highly encouraged
+  env="prod", # dev, local, etc
+  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+)
+
+# ^ must run above all imports
+import streamlit as st
+
+# call start_trace before your Streamlit app logic
+token = start_trace(name="streamlit-app")
+
+# your Streamlit app logic...
+def generate_text(topic: str, mood: str = "", style: str = ""):
+    pass
+
+end_trace(token)
+# bottom of the file
+```
+3. Add the `trace` decorator to functions that you want to track. This will show the function and its arguments in the stacktrace.
+```python
+@trace
+def generate_text(topic: str, mood: str = "", style: str = ""):
+    ...
+```
+
+#### Using a main function
+If your entire Streamlit app runs a single function, then the setup is a bit easier.
+
+1. Import `iudex` and call `instrument()` to the top of your Streamlit app file. 
+2. Add the `trace` decorator to the main function.
+```python
+from iudex import instrument, trace
+instrument(
+  service_name="YOUR_SERVICE_NAME", # highly encouraged
+  env="prod", # dev, local, etc
+  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+)
+
+# ^ must run above all imports
+import streamlit as st
+
+@trace
+def main():
+    # your Streamlit app logic...
+
+main()
+```
+3. We still recommend adding the `trace` decorator to various functions.
+
 
 ### Tracing Your Functions
 Iudex automatically traces framework and library functions.

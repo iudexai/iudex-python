@@ -11,6 +11,15 @@ monkeypatch_print()
 from .config import IudexConfig, configure_logger
 from .instrumentation import instrument
 from .fastapi import instrument_fastapi
-from .trace import trace, trace_lambda
+from .trace import trace, trace_lambda, start_trace, end_trace
 
-__all__ = ["IudexConfig", "configure_logger", "instrument", "instrument_fastapi", "trace", "trace_lambda"]
+__all__ = [
+  "IudexConfig",
+  "configure_logger",
+  "instrument",
+  "instrument_fastapi",
+  "trace",
+  "trace_lambda",
+  "start_trace",
+  "end_trace",
+]

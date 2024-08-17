@@ -1,9 +1,41 @@
 import functools
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Iterator, Optional
 
 import wrapt
-from opentelemetry import trace as otel_trace
+from opentelemetry import trace as otel_trace, context
 from opentelemetry.trace import StatusCode
+from opentelemetry.trace.span import Span
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def start_trace(
+    name: Optional[str] = "default",
+    attributes: Optional[dict] = None,
+    current_context: Optional[otel_trace.SpanContext] = None,
+) -> Optional[object]:
+    tracer = otel_trace.get_tracer(__name__)
+
+    # Create new span
+    span = tracer.start_span(name or "default")
+    if attributes:
+        span.set_attributes(attributes)
+
+    ctx = otel_trace.set_span_in_context(span, current_context)
+    return context.attach(ctx)
+
+
+def end_trace(
+    token: object,
+) -> Optional[Span]:
+    span = otel_trace.get_current_span()
+    
+    # End the span and remove span from context
+    context.detach(token)
+    span.end()
+
+    return span
 
 
 def trace(

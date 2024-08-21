@@ -6,6 +6,7 @@ Next generation observability.
 ### Supported Libraries
 
 ✅ logger
+✅ loguru
 ✅ sqlalchemy
 ✅ supabase
 ✅ modal
@@ -126,12 +127,11 @@ Add this code to the VERY TOP of your entrypoint file, before all imports.
 ```python
 from iudex import instrument
 instrument(
-  service_name="YOUR_SERVICE_NAME", # highly encouraged
-  env="prod", # dev, local, etc
-  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+    service_name="YOUR_SERVICE_NAME", # highly encouraged
+    env="prod", # dev, local, etc
+    iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
 )
-
-# ^ must run above all imports
+# ^ Must run above all imports
 ```
 
 Iudex auto-instrumentation must run before imports in order to patch libraries with specialized, no-overhead instrumentation code.
@@ -212,12 +212,11 @@ Streamlit works by running a static Python script which means all you need to do
 ```python
 from iudex import instrument, start_trace, end_trace, trace
 instrument(
-  service_name="YOUR_SERVICE_NAME", # highly encouraged
-  env="prod", # dev, local, etc
-  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+    service_name="YOUR_SERVICE_NAME", # highly encouraged
+    env="prod", # dev, local, etc
+    iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
 )
-
-# ^ must run above all imports
+# ^ Must run above all imports
 import streamlit as st
 
 # call start_trace before your Streamlit app logic
@@ -245,12 +244,12 @@ If your entire Streamlit app runs a single function, then the setup is a bit eas
 ```python
 from iudex import instrument, trace
 instrument(
-  service_name="YOUR_SERVICE_NAME", # highly encouraged
-  env="prod", # dev, local, etc
-  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+    service_name="YOUR_SERVICE_NAME", # highly encouraged
+    env="prod", # dev, local, etc
+    iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
 )
 
-# ^ must run above all imports
+# ^ Must run above all imports
 import streamlit as st
 
 @trace
@@ -274,12 +273,11 @@ Note: You must call `iudex.instrument()` earlier in your code (per above) before
 ```python
 from iudex import instrument, trace
 instrument(
-  service_name="YOUR_SERVICE_NAME", # highly encouraged
-  env="prod", # dev, local, etc
-  iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
+    service_name="YOUR_SERVICE_NAME", # highly encouraged
+    env="prod", # dev, local, etc
+    iudex_api_key="WRITE_ONLY_IUDEX_KEY", # only ever commit your WRITE ONLY key
 )
-
-# ^ must run above all imports
+# ^ Must run above all imports
 
 @trace
 def my_function(arg1, arg2):

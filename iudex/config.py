@@ -2,6 +2,7 @@
 # ^ because monkeypatches must import and run before other imports
 from .monkeypatches.get_attributes import patched_get_attributes
 from .monkeypatches.logging import monkeypatch_LogRecord_getMessage
+from .monkeypatches.print import monkeypatch_print
 
 import importlib.util
 import logging
@@ -155,8 +156,10 @@ class _IudexConfig:
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
         set_logger_provider(logger_provider)
         logging.basicConfig(level=self.log_level)
-        # add handler to root logger
+        # add otel handler to root logger
         configure_logging(log_level=self.log_level)
+        # monkeypatch print to emit with otel handler
+        monkeypatch_print(LoggingHandler(level=logging.INFO))
 
         # configure tracer
         trace_provider = TracerProvider(resource=resource)

@@ -2,7 +2,7 @@ from iudex import instrument
 from iudex.trace import set_attribute, trace
 
 iudex_config = instrument(
-    service_name="joke-service",
+    service_name="test_fastapi_instrumentation",
     env="prod",
     iudex_api_key="",
 )
@@ -47,6 +47,7 @@ def my_print_helper():
 @app.get("/")
 def read_root():
     logger.info("Hello world")
+    print("hello print", extra={"foo": "bar"})
     my_print_helper()
     set_attribute("foo", "bar")
     return {"data": "hello world"}
@@ -177,33 +178,3 @@ def test_trace():
     logger.info("start trace")
     test_trace_helper("world")
     logger.info("done trace")
-
-
-from guardrails import Guard
-from guardrails.telemetry import default_otlp_tracer
-from guardrails.hub import (
-    ValidLength,
-)
-
-default_otlp_tracer('joke_guard')
-
-@app.get("/joke/{subject}")
-def tell_joke(subject):
-    if not subject:
-        raise ValueError("I can't tell a joke without a subject!")
-
-    guard = Guard(name="joke_guard").use_many(
-        ValidLength(min=0, max=100),
-    )
-
-    res = guard(
-        model="gpt-4o-mini",
-        messages=[{
-            "role": "user",
-            "content": f"Tell me a joke about {subject}",
-        }],
-        temperature=1,
-    )
-
-    # subject="space" => "Why did the sun go to school? To get a little brighter!"
-    return res.validated_output

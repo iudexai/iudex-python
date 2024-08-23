@@ -40,6 +40,8 @@ INSTRUMENTATION_LIBS = [
     ("opentelemetry.instrumentation.celery", "CeleryInstrumentor", {}),
     ("opentelemetry.instrumentation.confluent_kafka", "ConfluentKafkaInstrumentor", {}),
     ("opentelemetry.instrumentation.django", "DjangoInstrumentor", {}),
+    # we add more stuff
+    (".django", "DjangoInstrumentor", {}),
     ("opentelemetry.instrumentation.elasticsearch", "ElasticsearchInstrumentor", {}),
     ("opentelemetry.instrumentation.falcon", "FalconInstrumentor", {}),
     ("opentelemetry.instrumentation.fastapi", "FastAPIInstrumentor", {}),
@@ -106,6 +108,7 @@ def instrument(
     git_commit: Optional[str] = None,
     github_url: Optional[str] = None,
     env: Optional[str] = None,
+    disable_print: Optional[bool] = None,
     config: Optional[IudexConfig] = None,
 ):
     """Auto-instruments app to send OTel signals to Iudex.
@@ -143,6 +146,7 @@ def instrument(
         "log_level": log_level,
         "git_commit": git_commit,
         "github_url": github_url,
+        "disable_print": disable_print,
         "env": env,
     }
     iudex_config = _IudexConfig(**config)

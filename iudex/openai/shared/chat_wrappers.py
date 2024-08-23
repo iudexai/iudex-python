@@ -259,8 +259,6 @@ def _handle_response(
     )
 
     # span attributes
-    print(span)
-    print(response_dict)
     _set_response_attributes(span, response_dict)
 
     if should_send_prompts():

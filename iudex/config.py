@@ -60,6 +60,7 @@ class IudexConfig(TypedDict, total=False):
     env: Optional[str]
     attributes: Optional[Attributes]
     timeout: Optional[int]
+    disable_print: Optional[bool]
 
 
 class _IudexConfig:
@@ -116,6 +117,8 @@ class _IudexConfig:
 
         self._timeout = kwargs.get("timeout") or int(os.getenv(OTEL_EXPORTER_OTLP_TIMEOUT, DEFAULT_TIMEOUT))
 
+        self.disable_print = kwargs.get("disablePrint") or kwargs.get("disable_print") or False
+
     def configure(self):
         if not self.iudex_api_key:
             _logger.warning(
@@ -158,8 +161,9 @@ class _IudexConfig:
         logging.basicConfig(level=self.log_level)
         # add otel handler to root logger
         configure_logging(log_level=self.log_level)
-        # monkeypatch print to emit with otel handler
-        monkeypatch_print(LoggingHandler(level=logging.INFO))
+        if not self.disable_print: 
+            # monkeypatch print to emit with otel handler
+            monkeypatch_print(LoggingHandler(level=logging.INFO))
 
         # configure tracer
         trace_provider = TracerProvider(resource=resource)

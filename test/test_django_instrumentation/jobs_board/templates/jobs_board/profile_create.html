@@ -1,0 +1,18 @@
+<form action="{% url 'jobs_board:profile_create' %}" method="post">
+  {% csrf_token %}
+  {% if new_profile %}<p><strong>Created {{ new_profile }}!</strong></p>{% endif %}
+  <h2>Create new profile</h2>
+  <fieldset style="display: flex; flex-direction: column; gap: 12px">
+      {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+      <label for="first_name">First name</label>
+      <input type="text" id="first_name" name="first_name">
+      <label for="last_name">Last name</label>
+      <input type="text" id="last_name" name="last_name">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email">
+      <label for="bio">Bio</label>
+      <textarea type="text" id="bio" cols="4" name="bio"></textarea>
+  </fieldset>
+  <br />
+  <input type="submit" value="Create">
+</form>

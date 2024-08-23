@@ -8,6 +8,7 @@ def monkeypatch_print(logging_handler: LoggingHandler):
     import sys
     import traceback
     from collections.abc import Mapping
+    from typing import Optional
 
     print_logger = logging.getLogger("print")
     print_logger.setLevel(logging.INFO)
@@ -22,7 +23,7 @@ def monkeypatch_print(logging_handler: LoggingHandler):
         end="\n",
         file=sys.stdout,
         flush=False,
-        extra: Mapping[str, object] | None = None
+        extra: Optional[Mapping[str, object]] = None
     ):
         level = logging.ERROR if file is sys.stderr else logging.INFO
         message = sep.join(map(str, objects)) + end

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iudex"
-version = "0.12.1"
+version = "0.13.2"
 description = ""
 authors = ["Drake Wong <drake@iudex.ai>"]
 readme = "README.md"
@@ -26,6 +26,7 @@ opentelemetry-instrumentation-botocore = "^0.46b0"
 opentelemetry-instrumentation-cassandra = "^0.46b0"
 opentelemetry-instrumentation-celery = "^0.46b0"
 opentelemetry-instrumentation-confluent-kafka = "^0.46b0"
+opentelemetry-instrumentation-dbapi = "^0.46b0"
 opentelemetry-instrumentation-django = "^0.46b0"
 opentelemetry-instrumentation-elasticsearch = "^0.46b0"
 opentelemetry-instrumentation-falcon = "^0.46b0"
@@ -77,6 +78,7 @@ opentelemetry-instrumentation-transformers = "^0.23.0"
 opentelemetry-instrumentation-vertexai = "^0.23.0"
 opentelemetry-instrumentation-watsonx = "^0.23.0"
 opentelemetry-instrumentation-weaviate = "^0.23.0"
+openai = "1.42.0"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.1"

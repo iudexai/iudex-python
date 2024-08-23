@@ -1,0 +1,1 @@
+_instruments = ("django >= 1.10",)

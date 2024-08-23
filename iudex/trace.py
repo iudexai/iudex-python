@@ -45,12 +45,13 @@ def trace(
     ignore_args: Optional[bool] = None,
     ignore_kwargs: Optional[bool] = None,
     attributes: Optional[dict] = None,
+    get_attributes: Optional[Callable] = None,
 ) -> Callable:
     """Decorator to trace a function with OpenTelemetry.
 
     Args:
         name (Optional[str]): Optional span name. Defaults to the wrapped function's name.
-        ignore_args (Optional[bool]): Whether to ignore positional arguments, tracking is one default.
+        ignore_args (Optional[bool]): Whether to ignore positional arguments, tracking is on by default.
         ignore_kwargs (Optional[bool]): Whether to ignore keyword arguments, tracking is on by default.
         attributes (Optional[Dict[str, Any]]): Additional attributes to add to the span.
     """
@@ -70,6 +71,10 @@ def trace(
             try:
                 if attributes:
                     span.set_attributes(attributes)
+                if get_attributes:
+                    instance_attrs = get_attributes(instance)
+                    if instance_attrs:
+                        span.set_attributes(instance_attrs)
 
                 if args and not ignore_args:
                     if len(args) == 1:

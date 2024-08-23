@@ -1,0 +1,23 @@
+{% if profile %}
+  <div>
+    <h2>{{ profile.first_name }} {{ profile.last_name }}</h2>
+    <div style="display: flex; flex-direction: row; gap: 8px; align-items: center">
+      <h3>Email:</h3>
+      <span>{{ profile.email }}</span>
+    </div>
+    <div>
+      <h3>Skills</h3>
+      <ul>
+        {% for skill in profile.skills.all %}
+          <li>{{ skill.name }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h3>Bio</h3>
+      <p>{{ profile.bio }}</p>
+    </div>
+  </div>
+{% else %}
+    <p>Profile {profile_id} not found</p>
+{% endif %}

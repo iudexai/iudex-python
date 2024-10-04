@@ -1,16 +1,20 @@
+from pydantic import BaseModel
 from iudex import instrument
 from iudex.trace import set_attribute, trace
 
 iudex_config = instrument(
     service_name="test_fastapi_instrumentation",
     env="prod",
-    iudex_api_key="",
+    iudex_api_key="ixk_5d1d59f0fda17554b15ed2a2e407131306ce8f5260f7ae821e9f3684423a3afa",
+    redact="hello",
 )
+
+import importlib
 
 import datetime
 import logging
 import os
-from typing import Union
+from typing import Any, Union
 from uuid import uuid4
 
 from dotenv import load_dotenv
@@ -20,7 +24,6 @@ from openai import OpenAI
 
 load_dotenv()
 
-api_key = os.getenv("IUDEX_API_KEY")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
@@ -42,7 +45,11 @@ logger = logging.getLogger(__name__)
 
 @trace()
 def my_print_helper():
-    print("test", "print", sep=", ", end="!")
+    print("print test", "print", sep=", ", end="!")
+    logger = logging.getLogger('fff')
+    logger.info('logger test')
+    other_file = importlib.import_module('other_file')
+    other_file.my_other_print_helper()
 
 @app.get("/")
 def read_root():
@@ -52,11 +59,38 @@ def read_root():
     set_attribute("foo", "bar")
     return {"data": "hello world"}
 
-@app.get("/print_error")
+"""
+curl -X POST http://localhost:8000/echo \
+-H "Content-Type: application/json" \
+-d '{
+  "nested_data": {
+    "level1": {
+      "level2": {
+        "level3": {
+          "level4": {
+            "level5": "This is deeply nested"
+          }
+        }
+      }
+    }
+  },
+  "long_string": "'"$(printf 'a%.0s' {1..2000})"'",
+  "many_keys": {'"$(for i in {1..50}; do echo "\"key$i\": $i,"; done | sed '$ s/,$//')"'}
+}'
+"""
+class EchoReq(BaseModel):
+    nested_data: Any
+    long_string: str
+    many_keys: Any
+@app.post("/echo")
+def echo(req: EchoReq):
+    return {"data": req}
+
+@app.get("/error")
 def print_error():
     e = ValueError("This is an error")
     logger.exception(e)
-    return {"data": "hello world"}
+    raise e
 
 @app.get("/supabase")
 def test_supabase():

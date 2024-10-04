@@ -86,7 +86,6 @@ def trace(
 
                 ret = wrapped(*args, **kwargs)
 
-                span.set_status(StatusCode.OK)
                 return ret
             except Exception as e:
                 span.set_status(StatusCode.ERROR, str(e))

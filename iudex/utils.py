@@ -1,20 +1,46 @@
 import importlib
-import importlib.util
 import importlib.metadata
-from packaging.requirements import Requirement
+import importlib.util
 import logging
+import os
+from typing import Any
+
+from packaging.requirements import Requirement
+
+from .asgi import client_request_hook, client_response_hook
 
 logger = logging.getLogger(__name__)
 
 
-def maybe_instrument_lib(module_path: str, instrumentor_class_name: str, **kwargs):
+ASGI_INSTRUMENTORS = ["FastAPIInstrumentor"]
+
+
+def maybe_instrument_lib(
+    module_path: str,
+    instrumentor_class_name: str,
+    constructor_kwargs: dict[str, Any],
+    instrument_kwargs: dict[str, Any],
+):
     try:
+        # skip lambda warnings
+        if instrumentor_class_name == "AwsLambdaInstrumentor":
+            lambda_handler = os.environ.get("ORIG_HANDLER", os.environ.get("_HANDLER"))
+            if not lambda_handler:
+                return
+
+        # add req/res payload hooks
+        # TODO: support this through .instrument args too
+        disable_req_res_tracing = os.getenv("DISABLE_REQ_RES_TRACING", False)
+        if not disable_req_res_tracing and instrumentor_class_name in ASGI_INSTRUMENTORS:
+            instrument_kwargs["client_request_hook"] = client_request_hook
+            instrument_kwargs["client_response_hook"] = client_response_hook
+
         # get instrumentor and its requirements
         package = "iudex" if module_path[0] == "." else None
         module = importlib.import_module(module_path, package)
 
         construct_instrumentor = getattr(module, instrumentor_class_name)
-        instrumentor = construct_instrumentor(**kwargs)
+        instrumentor = construct_instrumentor(**constructor_kwargs)
         req_strs = instrumentor.instrumentation_dependencies()
         reqs = [Requirement(r) for r in req_strs]
 
@@ -41,7 +67,7 @@ def maybe_instrument_lib(module_path: str, instrumentor_class_name: str, **kwarg
             return
 
         # instrument the library
-        instrumentor.instrument()
+        instrumentor.instrument(**instrument_kwargs)
 
     # instrumentor tried and failed to import a requirement, so swallow error and skip
     except ModuleNotFoundError as e:

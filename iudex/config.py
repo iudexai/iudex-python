@@ -7,13 +7,16 @@ from .monkeypatches.print import monkeypatch_print
 import importlib.util
 import logging
 import os
+import re
 import subprocess
-from typing import Optional, TypedDict, Union
+from typing import Callable, Optional, TypedDict, Union
+import secrets
 
+from opentelemetry.sdk.trace.id_generator import IdGenerator
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler, LogRecordProcessor, LogData, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.environment_variables import (
     OTEL_EXPORTER_OTLP_HEADERS,
@@ -61,12 +64,13 @@ class IudexConfig(TypedDict, total=False):
     attributes: Optional[Attributes]
     timeout: Optional[int]
     disable_print: Optional[bool]
+    redact: Optional[Union[str, re.Pattern, Callable[[LogRecord], None]]]
 
 
 class _IudexConfig:
     def __init__(
         self,
-        **kwargs,
+        **kwargs: IudexConfig,
     ):
         self.iudex_api_key = kwargs.get("iudex_api_key") or os.getenv("IUDEX_API_KEY")
         if not self.iudex_api_key:
@@ -119,6 +123,8 @@ class _IudexConfig:
 
         self.disable_print = kwargs.get("disablePrint") or kwargs.get("disable_print") or False
 
+        self.redact = kwargs.get("redact") or None
+
     def configure(self):
         if not self.iudex_api_key:
             _logger.warning(
@@ -156,6 +162,8 @@ class _IudexConfig:
         # configure logger
         logger_provider = LoggerProvider(resource=resource)
         log_exporter = OTLPLogExporter(endpoint=self.logs_endpoint, headers=headers, timeout=self._timeout)
+        if self.redact:
+            logger_provider.add_log_record_processor(RedactLogProcessor(self.redact))
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
         set_logger_provider(logger_provider)
         logging.basicConfig(level=self.log_level)
@@ -166,7 +174,7 @@ class _IudexConfig:
             monkeypatch_print(LoggingHandler(level=logging.INFO))
 
         # configure tracer
-        trace_provider = TracerProvider(resource=resource)
+        trace_provider = TracerProvider(resource=resource, id_generator=IudexIdGenerator())
         span_exporter = OTLPSpanExporter(endpoint=self.traces_endpoint, headers=headers, timeout=self._timeout)
         trace_provider.add_span_processor(BatchSpanProcessor(span_exporter))
         set_tracer_provider(trace_provider)
@@ -238,3 +246,33 @@ def configure_loguru(
     logger.add(logger_handler, format=format)
 
     return logger
+
+class RedactLogProcessor(LogRecordProcessor):
+    def __init__(
+        self,
+        redact: Union[str, re.Pattern, Callable[[LogRecord], None]],
+    ):
+        self.redact = redact
+        if callable(redact):
+            self.redact_fn = redact
+        elif isinstance(redact, str):
+            def redact_fn(record: LogRecord) -> str:
+                if isinstance(record.body, str):
+                    record.body = re.sub(redact, "REDACTED", record.body)
+            self.redact_fn = redact_fn
+
+    def emit(self, log_data: LogData):
+        if self.redact_fn:
+            self.redact_fn(log_data.log_record)
+    
+    def shutdown(self):
+        pass
+
+    def force_flush(self, timeout_millis: int = 30000):
+        return True
+
+class IudexIdGenerator(IdGenerator):
+    def generate_span_id(self) -> int:
+        return secrets.randbits(64)
+    def generate_trace_id(self) -> int:
+        return secrets.randbits(128)

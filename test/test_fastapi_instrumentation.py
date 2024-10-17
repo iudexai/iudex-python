@@ -14,11 +14,11 @@ import importlib
 import datetime
 import logging
 import os
-from typing import Any, Union
+from typing import Any, Optional, Union
 from uuid import uuid4
 
 from dotenv import load_dotenv
-from fastapi import BackgroundTasks, FastAPI, APIRouter
+from fastapi import BackgroundTasks, FastAPI, APIRouter, File, Form, UploadFile
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
 
@@ -228,3 +228,18 @@ def test_trace():
     logger.info("start trace")
     test_trace_helper("world")
     logger.info("done trace")
+
+"""
+curl -X POST "http://localhost:8000/file" -H "Content-Type: multipart/form-data" -F "file=@./file.txt"
+"""
+@app.post("/file")
+async def upload_file(
+    file: UploadFile = File(...),
+):
+    file_info = {
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "file_size": file.size,
+    }
+    logger.info(file_info)
+    return { "file_info": file_info }

@@ -1,8 +1,11 @@
 import json
+import re
 from typing import Any, Dict, Union
+import logging
 
 from opentelemetry.trace import Span
 
+logger = logging.getLogger(__name__)
 
 def process_body(
     message: Dict[str, Any],
@@ -40,29 +43,31 @@ def process_body(
             return f"{truncated}... (max_value_bytes of {max_bytes} exceeded)"
         return value
 
-    # Extract and process the body according to ASGI spec
     body = message.get("body", b"")
-    more_body = message.get("more_body", False)
 
-    # Accumulate body chunks if more_body is True
-    while more_body:
-        # In a real scenario, you'd need to await the next message
-        # This is a simplified version
-        next_message = {}  # This should be the next message in the ASGI cycle
-        body += next_message.get("body", b"")
-        more_body = next_message.get("more_body", False)
-
-    # Try to parse body as JSON, fall back to string if it fails
     try:
         body_content = json.loads(body.decode("utf-8"))
-    except json.JSONDecodeError:
-        body_content = body.decode("utf-8", errors="replace")
-
-    if isinstance(body_content, dict):
         return process_dict(body_content, 0)
-    else:
-        return {"body": truncate_value(str(body_content), max_value_bytes)}
+    except json.JSONDecodeError:
+        return {"body": truncate_value(body.decode("utf-8", errors="replace"), max_value_bytes)}
+    except Exception as e:
+        logger.warning(f"[IUDEX] could not process request body: {e}")
+        return {}
 
+def extract_file_info(scope: Dict[str, Any], message: Dict[str, Any]) -> Dict[str, Any]:
+    file_info = {}
+
+    headers = dict(scope.get('headers', []))
+    content_length = headers.get(b'content-length')
+    if content_length:
+        file_info['size'] = int(content_length.decode('utf-8'))
+
+    body = message.get('body', b'')
+    content_disp_match = re.search(b'filename="([^"]+)"', body[:1024])
+    if content_disp_match:
+        file_info['name'] = content_disp_match.group(1).decode('utf-8')
+
+    return file_info
 
 def flatten_dict(d: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
     items = []
@@ -76,14 +81,26 @@ def flatten_dict(d: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
             items.append((new_key, json.dumps(v)))
     return dict(items)
 
-
 def client_request_hook(span: Span, scope: Dict[str, Any], message: Dict[str, Any]):
     if span and span.is_recording():
-        processed_body = process_body(message)
-        flattened_attrs = flatten_dict(processed_body, "http.request.body")
-        for key, value in flattened_attrs.items():
-            span.set_attribute(key, value)
+        headers = dict(scope.get('headers', []))
+        content_type = headers.get(b'content-type', b'').decode('utf-8')
 
+        if 'multipart/form-data' in content_type:
+            file_info = extract_file_info(scope, message)
+            if 'name' in file_info:
+                span.set_attribute("http.request.file.name", file_info['name'])
+            if 'size' in file_info:
+                span.set_attribute("http.request.file.size", file_info['size'])
+            # NOTE: semconv https://opentelemetry.io/docs/specs/semconv/attributes-registry/http/#:~:text=3495-,http.request.header.%3Ckey%3E,-string%5B%5D
+            # don't directly use content_type since it includes boundary
+            span.set_attribute("http.request.header.content-type", ['multipart/form-data'])
+        else:
+            processed_body = process_body(message)
+            flattened_attrs = flatten_dict(processed_body, "http.request.body")
+            for key, value in flattened_attrs.items():
+                span.set_attribute(key, value)
+            span.set_attribute("http.request.header.content-type", [content_type])
 
 def client_response_hook(span: Span, scope: Dict[str, Any], message: Dict[str, Any]):
     if span and span.is_recording():

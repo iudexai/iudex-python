@@ -31,6 +31,8 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import set_tracer_provider
 
+from .utils import get_version
+
 _logger = logging.getLogger(__name__)
 
 DEFAULT_SERVICE_NAME = "unknown_service:python"
@@ -144,6 +146,7 @@ class _IudexConfig:
         attributes["git.commit"] = self.git_commit
         attributes["github.url"] = self.github_url
         attributes["env"] = self.env
+        attributes["iudex.version"] = get_version()
         # clean attributes
         attributes = {
             key: value for key, value in attributes.items() if value is not None

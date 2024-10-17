@@ -82,3 +82,12 @@ def maybe_instrument_lib(
 
     except Exception as e:
         logger.exception(f"Failed to instrument with {instrumentor_class_name}: {e}")
+
+def get_version():
+    try:
+        return importlib.metadata.version("iudex")
+    except ImportError:
+        return None
+
+# Use in your logging
+version_number = get_version()

@@ -18,7 +18,7 @@ from typing import Any, Union
 from uuid import uuid4
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, APIRouter
+from fastapi import BackgroundTasks, FastAPI, APIRouter
 from fastapi.responses import StreamingResponse
 from openai import OpenAI
 
@@ -85,6 +85,22 @@ class EchoReq(BaseModel):
 @app.post("/echo")
 def echo(req: EchoReq):
     return {"data": req}
+
+@trace
+async def raise_exception():
+    logger.error("super async error")
+    raise Exception("This is SUPERASYNC test exception")
+
+
+@app.get("/s")
+async def force_error_sync():
+    await raise_exception()
+
+
+@app.get("/a")
+async def force_error(background_tasks: BackgroundTasks):
+    background_tasks.add_task(raise_exception)
+    return {"message": "Background task added"}
 
 @app.get("/error")
 def print_error():

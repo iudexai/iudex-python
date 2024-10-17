@@ -4,7 +4,7 @@ from iudex.trace import trace
 iudex_config = instrument(
     service_name="joke-service",
     env="prod",
-    iudex_api_key="",
+    iudex_api_key="ixk_5d1d59f0fda17554b15ed2a2e407131306ce8f5260f7ae821e9f3684423a3afa",
 )
 
 from guardrails import Guard

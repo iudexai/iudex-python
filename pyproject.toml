@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "iudex"
-version = "0.15.0"
+version = "0.15.2"
 description = ""
 authors = ["Drake Wong <drake@iudex.ai>"]
 readme = "README.md"
@@ -9,6 +9,9 @@ readme = "README.md"
 python = "^3.9,!=3.9.7" # streamlit doesn't support 3.9.7
 wrapt = "^1.16.0"
 tiktoken = ">=0.3.3,<1"
+# opentelemetry
+opentelemetry-exporter-otlp = "^1.27.0"
+opentelemetry-contrib-instrumentations = "^0.48b0"
 # openllmetry
 opentelemetry-instrumentation-alephalpha = "^0.32.1"
 opentelemetry-instrumentation-anthropic = "^0.32.1"
@@ -30,7 +33,6 @@ opentelemetry-instrumentation-transformers = "^0.32.1"
 opentelemetry-instrumentation-vertexai = "^0.32.1"
 opentelemetry-instrumentation-watsonx = "^0.32.1"
 opentelemetry-instrumentation-weaviate = "^0.32.1"
-opentelemetry-contrib-instrumentations = "^0.48b0"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.1"

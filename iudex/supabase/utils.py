@@ -52,7 +52,7 @@ def parse_table_name(path: str) -> Optional[str]:
     try:
         return path.split("/")[1]
     except Exception as e:
-        logger.exception("Failed to extract table name from path %s: %s", path, e)
+        logger.warning("Failed to extract table name from path %s: %s", path, e)
 
 
 def parse_sql_command(
@@ -80,7 +80,7 @@ def parse_sql_command(
     elif http_method == "DELETE":
         return "DELETE"
 
-    logger.exception(
+    logger.warning(
         "Failed to parse SQL command from http method %s, headers %s",
         http_method,
         headers_attributes,

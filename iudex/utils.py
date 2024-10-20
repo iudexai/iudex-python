@@ -78,10 +78,10 @@ def maybe_instrument_lib(
         if str(e) == "'NoneType' object has no attribute 'rsplit'":
             logger.debug(f"Skipping {instrumentor_class_name} instrumentation: {e}")
             return
-        logger.exception(f"Failed to instrument with {instrumentor_class_name}: {e}")
+        logger.warning(f"Failed to instrument with {instrumentor_class_name}: {e}")
 
     except Exception as e:
-        logger.exception(f"Failed to instrument with {instrumentor_class_name}: {e}")
+        logger.warning(f"Failed to instrument with {instrumentor_class_name}: {e}")
 
 def get_version():
     try:

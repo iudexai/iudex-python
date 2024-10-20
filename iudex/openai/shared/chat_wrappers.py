@@ -558,7 +558,7 @@ class ChatStream(ObjectProxy):
             try:
                 complete_choice = self._complete_response["choices"][index]
             except IndexError as e:
-                logger.exception(f"Error processing choice with index {index}: {e}")
+                logger.warning(f"Error processing choice with index {index}: {e}")
                 continue
             if choice.get("finish_reason"):
                 complete_choice["finish_reason"] = choice.get("finish_reason")

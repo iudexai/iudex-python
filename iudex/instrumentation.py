@@ -14,7 +14,7 @@ INSTRUMENTATION_LIBS = [
         {
             "enrich_assistant": True,
             "enrich_token_usage": True,
-            "exception_logger": logger.error,
+            "exception_logger": logger.warning,
         },
     ),
     (".supabase", "SupabaseInstrumentor"),

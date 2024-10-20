@@ -241,7 +241,7 @@ def get_token_count_from_string(string: str, model_name: str):
             )
             encoding = tiktoken.encoding_for_model(DEFAULT_MODEL_FOR_ENCODING)
         except Exception as e:
-            logger.exception(e)
+            logger.warning(e)
             encoding = tiktoken.encoding_for_model(DEFAULT_MODEL_FOR_ENCODING)
 
         tiktoken_encodings[model_name] = encoding
